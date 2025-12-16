@@ -1,4 +1,7 @@
-import { Stack } from "expo-router";
+// ПЕРВАЯ строка!
+import './../global.css'
+
+import { Stack } from 'expo-router';
 
 export default function RootLayout() {
   return <Stack />;
