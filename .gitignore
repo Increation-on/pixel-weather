@@ -41,3 +41,28 @@ app-example
 # generated native folders
 /ios
 /android
+
+# React Native
+ios/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+
+# Environment variables
+.env
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
