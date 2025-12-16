@@ -1,0 +1,4 @@
+* text=auto
+*.{js,jsx,ts,tsx,json,md,yml,yaml} text eol=lf
+*.{bat,cmd} text eol=crlf
+*.{png,jpg,jpeg,gif,ico} binary
