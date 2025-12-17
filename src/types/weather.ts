@@ -1,31 +1,57 @@
-// Основные типы для погодного приложения
-
-// Унифицированные данные после обработки
-export interface UnifiedWeatherData {
-  temp: number;           // температура
-  feelsLike: number;      // ощущается как
-  humidity: number;       // влажность %
-  condition: string;      // описание ("ясно", "дождь")
-  icon: string;          // код иконки
-  city: string;          // название города
-  source: 'openweather' | 'weatherapi';  // какой API использован
-  timestamp?: number;     // когда получены (опционально)
+// src/types/weather.ts - ФИНАЛЬНАЯ ВЕРСИЯ
+export interface WeatherData {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  current: CurrentWeather;
+  daily: DailyForecast[];
 }
 
-// Типы погодных условий для удобства
-export type WeatherCondition = 
-  | 'clear'        // ясно
-  | 'clouds'       // облачно
-  | 'rain'         // дождь
-  | 'snow'         // снег
-  | 'thunderstorm' // гроза
-  | 'drizzle'      // морось
-  | 'mist'         // туман
-  | 'fog';         // туман
-
-// Тип для ошибок API
-export interface WeatherError {
-  message: string;
-  code?: number;
-  isFallback?: boolean;  // true если ошибка после фолбэка
+export interface CurrentWeather {
+  time: string;
+  temperature: number;
+  weatherCode: number;
+  weatherDescription: string; // текстовое описание
+  windSpeed: number;
+  isDay: boolean; // КРИТИЧНО для pixel-art: день vs ночь
+  feelsLike?: number; // "ощущается как"
 }
+
+export interface DailyForecast {
+  time: string;
+  dayOfWeek: string; // "Пн", "Вт" - для отображения
+  weatherCode: number;
+  weatherDescription: string;
+  temperatureMax: number;
+  temperatureMin: number;
+}
+
+// Таблица преобразования WMO кодов в текст
+export const WEATHER_CODES: Record<number, string> = {
+  0: 'Ясно',
+  1: 'Преимущественно ясно',
+  2: 'Переменная облачность',
+  3: 'Пасмурно',
+  45: 'Туман',
+  48: 'Инейный туман',
+  51: 'Лежащая морось',
+  53: 'Умеренная морось',
+  55: 'Сильная морось',
+  56: 'Ледяная морось',
+  57: 'Сильная ледяная морось',
+  61: 'Небольшой дождь',
+  63: 'Умеренный дождь',
+  65: 'Сильный дождь',
+  71: 'Небольшой снег',
+  73: 'Умеренный снег',
+  75: 'Сильный снег',
+  77: 'Снежные зерна',
+  80: 'Небольшие ливни',
+  81: 'Умеренные ливни',
+  82: 'Сильные ливни',
+  85: 'Небольшие снегопады',
+  86: 'Сильные снегопады',
+  95: 'Гроза',
+  96: 'Гроза с градом',
+  99: 'Сильная гроза с градом'
+};
