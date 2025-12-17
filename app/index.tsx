@@ -1,13 +1,16 @@
-// app/index.tsx
-import { View, Text } from 'react-native';
+import { useWeather } from './../src/hooks/useWeather';
+import { Button, View, Text } from 'react-native';
 
 export default function Home() {
+  const { data, isLoading, error } = useWeather(55.7558, 37.6173);
+
+  if (isLoading) return <Text>Загрузка погоды...</Text>;
+  if (error) return <Text>Ошибка: {error.message}</Text>;
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Без NativeWind</Text>
-      <View className="bg-red-500 p-4 mt-4">
-        <Text className="text-white font-bold">С NativeWind</Text>
-      </View>
+    <View>
+      <Text>Температура: {data?.current.temperature}°C</Text>
+      <Text>Погода: {data?.current.weatherDescription}</Text>
     </View>
   );
 }
