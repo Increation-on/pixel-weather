@@ -1,1 +1,1 @@
-export * from './weather'
+export * from './open-meteo'
