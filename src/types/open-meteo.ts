@@ -5,6 +5,11 @@ export interface WeatherData {
   timezone: string;
   current: CurrentWeather;
   daily: DailyForecast[];
+  metadata?: {
+    source: 'open-meteo' | 'weather-api';
+    retrievedAt: string;
+    originalLocation?: string;
+  };
 }
 
 export interface CurrentWeather {
