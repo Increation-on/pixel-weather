@@ -1,6 +1,6 @@
 // src/hooks/useWeather.ts
 import { useQuery } from '@tanstack/react-query';
-import { fetchWeather } from '@/src/api/weatherService';
+import { fetchWeather } from '../api/services/weatherService';
 import { WeatherData } from '../types/open-meteo';
 
 export function useWeather(lat: number, lon: number) {

@@ -1,8 +1,8 @@
 // src/api/weatherService.ts
 import { WeatherData } from '@/src/types/open-meteo';
-import { fetchOpenMeteo } from './openMeteoApi';
-import { fetchWeatherAPI } from './weatherApi';
-import { adaptWeatherAPIToOpenMeteo } from './adapters/weatherApiAdapter';
+import { fetchOpenMeteo } from '../openMeteoApi';
+import { fetchWeatherAPI } from '../weatherApi';
+import { adaptWeatherAPIToOpenMeteo } from '../adapters/weatherApiAdapter';
 
 // ГЛАВНЫЙ СЕРВИС - здесь вся логика фолбэка
 export async function fetchWeather(

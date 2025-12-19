@@ -8,7 +8,7 @@ export async function fetchOpenMeteo(
 ): Promise<WeatherData> {
    // ВРЕМЕННО ДОБАВЬТЕ ЭТУ СТРОКУ ДЛЯ ТЕСТА:
   // throw new Error('Тестовая ошибка Open-Meteo');
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&hourly=relativehumidity_2m&timezone=auto`;
   
   const response = await fetch(url);
   
@@ -17,7 +17,7 @@ export async function fetchOpenMeteo(
   }
   
   const data = await response.json();
-  
+  const humidity = data.hourly?.relativehumidity_2m?.[0] || 50;
   return {
     latitude: data.latitude,
     longitude: data.longitude,
@@ -29,7 +29,8 @@ export async function fetchOpenMeteo(
       weatherDescription: WEATHER_CODES[data.current_weather.weathercode] || 'Неизвестно',
       windSpeed: data.current_weather.windspeed,
       isDay: data.current_weather.is_day === 1,
-      feelsLike: Math.round(data.current_weather.temperature - 2)
+      feelsLike: Math.round(data.current_weather.temperature - 2),
+       humidity: Math.round(humidity), // 🔥 ДОБАВЛЯЕМ ВЛАЖНОСТЬ
     },
     daily: data.daily.time.map((time: string, index: number) => ({
       time,
@@ -42,6 +43,7 @@ export async function fetchOpenMeteo(
     metadata: {  // ← ДОБАВЬТЕ ЕСЛИ НЕТ!
     source: 'open-meteo',
     retrievedAt: new Date().toISOString(),
+    originalLocation: `Координаты: ${lat.toFixed(2)}, ${lon.toFixed(2)}`
   }
   };
 }
