@@ -23,10 +23,11 @@ export function adaptWeatherAPIToOpenMeteo(
       weatherDescription: WEATHER_CODES[wmoCode] || weatherApiData.current.condition.text,
       windSpeed: Math.round(windSpeedMps * 10) / 10,
       isDay: weatherApiData.current.is_day === 1,
-      feelsLike: Math.round(weatherApiData.current.feelslike_c),
+      feelsLike: Math.round(weatherApiData.current.feelslike_c), // ✅ теперь обязательное
+      humidity: weatherApiData.current.humidity, // ✅ добавляем влажность
     },
     
-    daily: [ // Заглушка, т.к. WeatherAPI бесплатно не дает прогноз
+    daily: [
       {
         time: weatherApiData.location.localtime.split(' ')[0],
         dayOfWeek: 'Сегодня',
@@ -36,5 +37,11 @@ export function adaptWeatherAPIToOpenMeteo(
         temperatureMin: Math.round(weatherApiData.current.temp_c - 2),
       }
     ],
+    
+    metadata: {
+      source: 'weather-api',
+      retrievedAt: new Date().toISOString(),
+      originalLocation: weatherApiData.location.name,
+    }
   };
 }

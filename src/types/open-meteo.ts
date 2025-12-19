@@ -16,10 +16,13 @@ export interface CurrentWeather {
   time: string;
   temperature: number;
   weatherCode: number;
-  weatherDescription: string; // текстовое описание
+  weatherDescription: string;
   windSpeed: number;
-  isDay: boolean; // КРИТИЧНО для pixel-art: день vs ночь
-  feelsLike?: number; // "ощущается как"
+  isDay: boolean;
+  feelsLike: number;       // УБРАТЬ "?" - сделать обязательным
+  humidity: number;        // ДОБАВИТЬ новое поле
+  precipitation?: number;  // опционально
+  pressure?: number;       // опционально
 }
 
 export interface DailyForecast {
