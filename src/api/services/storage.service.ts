@@ -11,11 +11,12 @@ const STORAGE_KEYS = {
 export interface StoredLocation {
   city: string;
   country?: string;
-  coordinates?: {
+  coordinates: {
     lat: number;
     lon: number;
   };
   timestamp: number;
+  isManual?: boolean;
 }
 
 export class StorageService {
