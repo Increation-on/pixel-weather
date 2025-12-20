@@ -1,5 +1,5 @@
 // HomeScreen.tsx (сильно упрощенный)
-import { useState, useEffect } from 'react';
+import {  useEffect } from 'react';
 import { useWeather } from "../hooks/useWeather";
 import { useLocationManager } from '../hooks/useLocationManager';
 import { View, Alert } from "react-native";
@@ -22,6 +22,7 @@ export const HomeScreen = () => {
     userCity,
     userCountry,
     isLoading: isLoadingLocation,
+    isFetching: isFetchingLocation,
     isGeocoding,
     isLoadingStorage,
     locationError,
@@ -94,7 +95,7 @@ export const HomeScreen = () => {
       <LocationActions
         onRefresh={handleRefreshLocation}
         onClear={userCity ? handleClearWithConfirmation : undefined}
-        isRefreshing={isLoadingLocation}
+        isRefreshing={isLoadingLocation || isFetchingLocation || isGeocoding}
         isGeocoding={isGeocoding}
         hasSavedLocation={!!userCity}
       />

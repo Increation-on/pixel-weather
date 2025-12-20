@@ -11,6 +11,7 @@ interface UseLocationManagerReturn {
     isLoading: boolean;
     isGeocoding: boolean;
     isLoadingStorage: boolean;
+    isFetching: boolean; // ← ДОБАВЬ ЭТУ СТРОКУ
     locationError: any;
     locationSource: 'device' | 'storage' | 'default';
     handleRefreshLocation: () => Promise<void>;
@@ -29,7 +30,8 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         data: location,
         error: locationError,
         isLoading: isLoadingLocation,
-        refetch: getLocation
+        refetch: getLocation,
+        isFetching: isFetchingLocation, // ← ДОБАВЛЯЕМ
     } = useGeolocation(false);
 
     // 🎯 1. Загрузка сохраненного города
@@ -187,6 +189,7 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         isLoadingStorage,
         locationError,
         locationSource,
+        isFetching: isFetchingLocation,
         handleRefreshLocation,
         handleClearSavedLocation,
         getLocationSubtitle,
