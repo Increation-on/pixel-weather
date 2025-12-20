@@ -1,8 +1,7 @@
-// HomeScreen.tsx (сильно упрощенный)
-import {  useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useWeather } from "../hooks/useWeather";
 import { useLocationManager } from '../hooks/useLocationManager';
-import { View, Alert } from "react-native";
+import { View, TouchableOpacity, Text, Alert } from "react-native";
 
 // Импорты компонентов
 import { LocationHeader } from '../components/location/LocationHeader';
@@ -14,8 +13,13 @@ import { DataSourceInfo } from '../components/shared/DataSourceInfo';
 import { LoadingState } from '../components/shared/LoadingState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { EmptyState } from '../components/shared/EmptyState';
+import { CitySearch } from '../components/search/CitySeacrh';
+import { CitySearchResult } from '../api/services/city-search.service';
 
 export const HomeScreen = () => {
+  // 🎯 Состояние для модалки поиска
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
   // 🎯 Логика местоположения
   const {
     coordinates,
@@ -28,9 +32,8 @@ export const HomeScreen = () => {
     locationError,
     locationSource,
     handleRefreshLocation,
-    handleClearSavedLocation,
+    setManualCity,
     getLocationSubtitle,
-    
   } = useLocationManager();
 
   // 🎯 Логика погоды
@@ -41,26 +44,39 @@ export const HomeScreen = () => {
 
   // 🎯 Обновление погоды при изменении координат
   useEffect(() => {
+    console.log('=== COORDINATES EFFECT FIRED ===');
+  console.log('coordinates:', coordinates);
+  console.log('coordinates?.lat:', coordinates?.lat);
+  console.log('coordinates?.lon:', coordinates?.lon);
     if (coordinates) {
       console.log('🔄 Координаты изменились, обновляем погоду...');
+      console.log('🔄 Запускаю refetchWeather...');
       refetchWeather();
     }
   }, [coordinates?.lat, coordinates?.lon]);
 
-  // 🎯 Обработчик очистки с подтверждением
-  const handleClearWithConfirmation = async () => {
-    Alert.alert(
-      'Очистить сохраненный город',
-      'Вы уверены, что хотите очистить сохраненный город? Приложение снова определит ваше местоположение.',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Очистить',
-          style: 'destructive',
-          onPress: handleClearSavedLocation,
-        },
-      ]
-    );
+  // 🎯 Обработчик выбора города
+  const handleCitySelect = async (city: CitySearchResult) => {
+  try {
+    console.log('🎯 Выбран город:', city.city);
+    
+    await setManualCity(city);
+    console.log('✅ setManualCity завершен');
+    
+    // useEffect с coordinates должен сработать автоматически
+    // потому что setCoordinates был вызван внутри setManualCity
+    
+  } catch (error) {
+    console.error('❌ Ошибка:', error);
+    Alert.alert('Ошибка', 'Не удалось сохранить выбранный город.');
+  }
+};
+
+  // 🎯 Получаем отформатированное название текущего города
+  const getCurrentCityDisplay = (): string => {
+    if (userCity && userCountry) return `${userCity}, ${userCountry}`;
+    if (userCity) return userCity;
+    return 'Город не выбран';
   };
 
   // 🎯 Состояния загрузки
@@ -82,7 +98,28 @@ export const HomeScreen = () => {
 
   // 🎯 Основной рендеринг
   return (
-    <View style={{ padding: 20 }}>
+    <View style={{ flex: 1, padding: 20 }}>
+      {/* Кнопка открытия поиска городов */}
+      <TouchableOpacity
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#f1f5f9',
+          padding: 12,
+          borderRadius: 10,
+          marginBottom: 15,
+        }}
+        onPress={() => setIsSearchVisible(true)}
+      >
+        <Text style={{ fontSize: 18, marginRight: 10 }}>🔍</Text>
+        <Text style={{ color: '#64748b', fontSize: 16, flex: 1 }}>
+          {userCity ? `Искать другой город` : 'Выбрать город вручную'}
+        </Text>
+        <Text style={{ color: '#3b82f6', fontSize: 14, fontWeight: '500' }}>
+          Поиск
+        </Text>
+      </TouchableOpacity>
+
       {/* Заголовок местоположения */}
       <LocationHeader
         city={userCity}
@@ -94,10 +131,8 @@ export const HomeScreen = () => {
       {/* Кнопки действий */}
       <LocationActions
         onRefresh={handleRefreshLocation}
-        onClear={userCity ? handleClearWithConfirmation : undefined}
         isRefreshing={isLoadingLocation || isFetchingLocation || isGeocoding}
         isGeocoding={isGeocoding}
-        hasSavedLocation={!!userCity}
       />
 
       {/* Ошибки геолокации */}
@@ -126,6 +161,14 @@ export const HomeScreen = () => {
         city={userCity}
         country={userCountry}
         locationSource={locationSource}
+      />
+
+      {/* Модалка поиска городов */}
+      <CitySearch
+        visible={isSearchVisible}
+        onCitySelect={handleCitySelect}
+        onClose={() => setIsSearchVisible(false)}
+        currentCity={getCurrentCityDisplay()}
       />
     </View>
   );

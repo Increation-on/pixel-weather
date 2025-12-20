@@ -3,22 +3,16 @@ import { View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 
 interface LocationActionsProps {
   onRefresh: () => Promise<void> | void;
-  onClear?: () => Promise<void> | void;
   isRefreshing?: boolean;
   isGeocoding?: boolean;
-  hasSavedLocation?: boolean;
   refreshButtonText?: string;
-  clearButtonText?: string;
 }
 
 export const LocationActions: React.FC<LocationActionsProps> = ({
   onRefresh,
-  onClear,
   isRefreshing = false,
-  isGeocoding = false,
-  hasSavedLocation = false,
+  isGeocoding = false, 
   refreshButtonText = 'Обновить местоположение',
-  clearButtonText = '🗑️ Очистить',
 }) => {
   const isLoading = isRefreshing || isGeocoding;
   
@@ -49,17 +43,6 @@ export const LocationActions: React.FC<LocationActionsProps> = ({
             </View>
           )}
         </TouchableOpacity>
-
-        {hasSavedLocation && onClear && (
-          <TouchableOpacity
-            onPress={() => onClear()}
-            style={styles.clearButton}
-          >
-            <Text style={styles.clearButtonText}>
-              {clearButtonText}
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
     </View>
   );
@@ -102,16 +85,6 @@ const styles = {
   },
   refreshButtonText: {
     color: 'white',
-    fontSize: 14,
-  },
-  clearButton: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#fee2e2',
-    justifyContent: 'center' as const,
-  },
-  clearButtonText: {
-    color: '#dc2626',
     fontSize: 14,
   },
 };

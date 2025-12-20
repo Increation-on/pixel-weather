@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGeolocation } from './useGeolocation';
 import { GeocodingService } from '../api/services/geocoding.service';
-import { StorageService } from '../api/services/storage.service';
+import { StorageService, StoredLocation } from '../api/services/storage.service';
+import { CitySearchResult } from '../api/services/city-search.service'; // ← ДОБАВЬ ИМПОРТ
 
 interface UseLocationManagerReturn {
     coordinates: { lat: number; lon: number } | null;
@@ -11,11 +12,11 @@ interface UseLocationManagerReturn {
     isLoading: boolean;
     isGeocoding: boolean;
     isLoadingStorage: boolean;
-    isFetching: boolean; // ← ДОБАВЬ ЭТУ СТРОКУ
+    isFetching: boolean;
     locationError: any;
     locationSource: 'device' | 'storage' | 'default';
+    setManualCity: (city: CitySearchResult) => Promise<void>; // ← ДОБАВЛЕН
     handleRefreshLocation: () => Promise<void>;
-    handleClearSavedLocation: () => Promise<void>;
     getLocationSubtitle: () => string;
 }
 
@@ -31,8 +32,49 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         error: locationError,
         isLoading: isLoadingLocation,
         refetch: getLocation,
-        isFetching: isFetchingLocation, // ← ДОБАВЛЯЕМ
+        isFetching: isFetchingLocation,
     } = useGeolocation(false);
+
+    // 🎯 Метод для ручного выбора города
+    // Измени метод setManualCity:
+
+const setManualCity = useCallback(async (city: CitySearchResult) => {
+  try {
+    console.log('📍 Ручной выбор города:', city.city);
+    console.log('=== SET MANUAL CITY START ===');
+    console.log('Город:', city.city, 'Координаты:', city.lat, city.lon);
+    const newCoordinates = {
+      lat: city.lat,
+      lon: city.lon,
+    };
+    
+    const locationData: StoredLocation = {
+      city: city.city || 'Неизвестный город',
+      country: city.country,
+      coordinates: newCoordinates,
+      timestamp: Date.now(),
+      isManual: true,
+    };
+
+    // ВАЖНО: сначала обновляем React состояние (синхронно)
+    setUserCity(locationData.city);
+    setUserCountry(locationData.country || null);
+    setCoordinates(newCoordinates);
+    console.log('Вызываю setCoordinates с:', newCoordinates);
+    setCoordinates(newCoordinates);
+    console.log('✅ setCoordinates вызван');
+    console.log('✅ React состояние обновлено синхронно');
+    console.log('📍 Новые координаты:', newCoordinates);
+    
+    // Потом сохраняем в storage (асинхронно, в фоне)
+    await StorageService.saveSelectedLocation(locationData);
+    console.log('✅ Данные сохранены в AsyncStorage');
+    
+  } catch (error) {
+    console.error('❌ Ошибка сохранения выбранного города:', error);
+    throw error;
+  }
+}, []);
 
     // 🎯 1. Загрузка сохраненного города
     useEffect(() => {
@@ -147,15 +189,6 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         await getLocation();
     };
 
-    const handleClearSavedLocation = async () => {
-        await StorageService.clearLocation();
-        setUserCity(null);
-        setUserCountry(null);
-        setCoordinates(null);
-        await getLocation();
-        console.log('🗑️ Локация очищена, запрашиваем новую...');
-    };
-
     // 🎯 Вспомогательная функция для подзаголовка
     const getLocationSubtitle = useCallback((): string => {
         if (isLoadingStorage) return 'Загружаем сохраненный город...';
@@ -190,8 +223,8 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         locationError,
         locationSource,
         isFetching: isFetchingLocation,
+        setManualCity, // ← ДОБАВЬ В RETURN
         handleRefreshLocation,
-        handleClearSavedLocation,
         getLocationSubtitle,
     };
 };
