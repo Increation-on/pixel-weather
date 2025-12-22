@@ -3,34 +3,55 @@ import { WeatherData } from '@/src/types/open-meteo';
 import { fetchOpenMeteo } from '../openMeteoApi';
 import { fetchWeatherAPI } from '../weatherApi';
 import { adaptWeatherAPIToOpenMeteo } from '../adapters/weatherApiAdapter';
+import { ApiErrorHandler } from '@/src/utils/ApiErrorHandler';
+import { UserFriendlyError } from '@/src/utils/userFriendlyError';
+import { weatherCache } from '@/src/utils/cache';
 
-// ГЛАВНЫЙ СЕРВИС - здесь вся логика фолбэка
 export async function fetchWeather(
   lat: number,
   lon: number
 ): Promise<WeatherData> {
   console.log(`📍 Запрос погоды: ${lat}, ${lon}`);
   
-  try {
-    // 1. Пробуем Open-Meteo
-    console.log('🔄 Open-Meteo...');
-    return await fetchOpenMeteo(lat, lon);
-    
-  } catch (primaryError) {
-    console.warn('⚠️ Open-Meteo упал, пробуем WeatherAPI...');
-    
+  return ApiErrorHandler.wrap(async () => {
     try {
-      // 2. Фолбэк на WeatherAPI
-      const weatherApiData = await fetchWeatherAPI(lat, lon);
+      console.log('🔄 Open-Meteo...');
+      const weatherData = await fetchOpenMeteo(lat, lon);
       
-      // 3. Адаптируем к нашему формату
-      console.log('✅ WeatherAPI успешно')
-      return adaptWeatherAPIToOpenMeteo(weatherApiData, lat, lon);
+      // ✅ СОХРАНЯЕМ В КЭШ ПОСЛЕ УСПЕШНОГО ЗАПРОСА
+      await weatherCache.save(lat, lon, weatherData);
+      console.log('💾 Данные сохранены в кэш');
       
-    } catch (fallbackError) {
-      // 3. Оба упали
-      console.error('❌ Оба API не работают');
-      throw new Error('Сервис погоды недоступен');
+      return weatherData;
+      
+    } catch (primaryError) {
+      console.warn('⚠️ Open-Meteo упал, пробуем WeatherAPI...');
+      
+      try {
+        const weatherApiData = await fetchWeatherAPI(lat, lon);
+        console.log('✅ WeatherAPI успешно');
+        const adaptedData = adaptWeatherAPIToOpenMeteo(weatherApiData, lat, lon);
+        
+        // ✅ СОХРАНЯЕМ В КЭШ ДАННЫЕ ОТ WEATHERAPI
+        await weatherCache.save(lat, lon, adaptedData);
+        console.log('💾 Данные от WeatherAPI сохранены в кэш');
+        
+        return adaptedData;
+        
+      } catch (fallbackError) {
+        console.error('❌ Оба API не работают');
+        
+        // Проверяем, может есть старый кэш?
+        const cachedData = await weatherCache.get();
+        if (cachedData) {
+          console.log('💾 Используем кэшированные данные как фолбэк');
+          return cachedData.data;
+        }
+        
+        throw UserFriendlyError.api(
+          'Сервисы погоды временно недоступны. Попробуйте позже.'
+        );
+      }
     }
-  }
+  }, 'WeatherService');
 }
