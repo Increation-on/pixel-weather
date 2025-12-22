@@ -4,6 +4,7 @@ import { useGeolocation } from './useGeolocation';
 import { GeocodingService } from '../api/services/geocoding.service';
 import { StorageService, StoredLocation } from '../api/services/storage.service';
 import { CitySearchResult } from '../api/services/city-search.service'; // ← ДОБАВЬ ИМПОРТ
+import { useToast } from './useToast';
 
 interface UseLocationManagerReturn {
     coordinates: { lat: number; lon: number } | null;
@@ -26,6 +27,7 @@ export const useLocationManager = (): UseLocationManagerReturn => {
     const [userCountry, setUserCountry] = useState<string | null>(null);
     const [isGeocoding, setIsGeocoding] = useState(false);
     const [isLoadingStorage, setIsLoadingStorage] = useState(true);
+    const { showToast } = useToast();
 
     const {
         data: location,
@@ -69,12 +71,22 @@ const setManualCity = useCallback(async (city: CitySearchResult) => {
     // Потом сохраняем в storage (асинхронно, в фоне)
     await StorageService.saveSelectedLocation(locationData);
     console.log('✅ Данные сохранены в AsyncStorage');
+
+    showToast({ 
+        message: `Город "${city.city}" сохранен`, 
+        type: 'success',
+        duration: 3000 
+      });
     
   } catch (error) {
     console.error('❌ Ошибка сохранения выбранного города:', error);
+    showToast({ 
+        message: 'Не удалось сохранить выбранный город. Попробуйте еще раз.', 
+        type: 'error' 
+      });
     throw error;
   }
-}, []);
+}, [showToast]);
 
     // 🎯 1. Загрузка сохраненного города
     useEffect(() => {
