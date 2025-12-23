@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WEATHER_CACHE_KEY = 'weather_cache';
-const CACHE_DURATION = 15 * 60 * 1000; // 15 минут
+const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 часа
 
 interface CachedWeatherData {
   data: any;

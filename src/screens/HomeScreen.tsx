@@ -70,7 +70,6 @@ export const HomeScreen = () => {
   } = useWeather(
     coordinates?.lat || 55.7558,
     coordinates?.lon || 37.6173,
-    // Передаем статус оффлайн, чтобы хук знал
   );
 
   // 🎯 Загружаем кэш при монтировании

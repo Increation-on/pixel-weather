@@ -5,12 +5,14 @@ import NetInfo from '@react-native-community/netinfo';
 interface NetworkContextType {
   isOffline: boolean;
   checkNetwork: () => Promise<boolean>;
+  connectionType: string;
 }
 
 const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOffline, setIsOffline] = useState(false);
+   const [connectionType, setConnectionType] = useState<string>('unknown');
   const isOfflineRef = useRef(isOffline); // Используем ref для избежания race conditions
 
   // Основной useEffect для мониторинга сети
@@ -20,12 +22,14 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const handleConnectivityChange = (state: any) => {
       const newIsOffline = state.isConnected === false || 
                           state.isInternetReachable === false;
+      const newConnectionType = state.type || 'unknown';                    
       
       // Проверяем, изменилось ли состояние
-      if (newIsOffline !== isOfflineRef.current) {
+      if (newIsOffline !== isOfflineRef.current || newConnectionType !== connectionType) {
         console.log(`🌐 NetworkProvider: состояние сети изменилось - ${newIsOffline ? 'offline' : 'online'}`);
         isOfflineRef.current = newIsOffline;
         setIsOffline(newIsOffline);
+        setConnectionType(newConnectionType);
       }
     };
 
@@ -112,7 +116,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <NetworkContext.Provider value={{ isOffline, checkNetwork }}>
+    <NetworkContext.Provider value={{ isOffline, checkNetwork, connectionType }}>
       {children}
     </NetworkContext.Provider>
   );
