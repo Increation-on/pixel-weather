@@ -2,11 +2,11 @@
 import { View, Text } from 'react-native';
 
 interface DataSourceInfoProps {
-  source: 'open-meteo' | 'weather-api';
+  source: 'open-meteo' | 'weather-api' | 'cached' | string; // Добавляем 'cached' и string
   coordinates?: { lat: number; lon: number } | null;
   city?: string | null;
   country?: string | null;
-  locationSource?: 'device' | 'storage' | 'default';
+  locationSource?: string; // Меняем на string
 }
 
 export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
@@ -45,13 +45,19 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
           Источник геолокации: {
             locationSource === 'device' ? 'устройство'
               : locationSource === 'storage' ? 'хранилище'
-                : 'по умолчанию'
+              : locationSource === 'default' ? 'по умолчанию'
+              : locationSource // Показываем как есть если неизвестно
           }
         </Text>
       )}
 
       <Text style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>
-        Данные: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI'}
+        Данные: {
+          source === 'open-meteo' ? 'Open-Meteo'
+            : source === 'weather-api' ? 'WeatherAPI'
+            : source === 'cached' ? 'Кэш'
+            : source // Показываем как есть если неизвестно
+        }
       </Text>
     </View>
   );
