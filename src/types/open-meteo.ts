@@ -1,4 +1,4 @@
-// src/types/weather.ts - ФИНАЛЬНАЯ ВЕРСИЯ
+// src/types/open-meteo.ts - ФИНАЛЬНАЯ ВЕРСИЯ
 export interface WeatherData {
   latitude: number;
   longitude: number;

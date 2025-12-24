@@ -5,8 +5,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Text,
-    RefreshControl,
-    StyleSheet
+    RefreshControl
 } from 'react-native';
 import { LocationHeader } from '@/src/components/location/LocationHeader';
 import { WeatherCard } from '@/src/components/weather/WeatherCard';
@@ -37,58 +36,49 @@ interface WeatherContentProps {
     isOffline?: boolean;
     showSearchButton?: boolean;
     dataSource?: string;
+
+    handleRefreshLocation?: () => void;
+    isLoading?: boolean;
+    isFetchingLocation?: boolean;
+    isGeocoding?: boolean;
 }
 
 export const WeatherContent: React.FC<WeatherContentProps> = ({
     userCity,
     userCountry,
     weatherData,
-    coordinates,
-    locationSource,
-    isSearchVisible,
     setIsSearchVisible,
     refreshing,
     isRefetching,
     onRefresh,
     onSearchPress,
-    getCurrentCityDisplay,
     subtitle,
     isOffline = false,
     showSearchButton = true,
     dataSource,
+    handleRefreshLocation,
+    isLoading = false,
+    isFetchingLocation = false,
+    isGeocoding = false,
 }) => {
     const handleSearchPress = onSearchPress || (() => setIsSearchVisible(true));
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 bg-background">
             <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
+                className="flex-1"
+                contentContainerStyle={{ padding: 20 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing || isRefetching}
                         onRefresh={onRefresh}
-                        colors={['#3B82F6']}
-                        tintColor="#3B82F6"
+                        colors={['#4ecdc4']} // ← primary цвет из палитры
+                        tintColor="#4ecdc4"   // ← primary цвет из палитры
                     />
                 }
             >
                 {/* Кнопка поиска */}
-                {showSearchButton && (
-                    <TouchableOpacity
-                        style={styles.searchButton}
-                        onPress={handleSearchPress}
-                        disabled={isOffline}
-                    >
-                        <Text style={styles.searchIcon}>🔍</Text>
-                        <Text style={styles.searchText}>
-                            {userCity ? `Искать другой город` : 'Выбрать город вручную'}
-                        </Text>
-                        <Text style={styles.searchActionText}>
-                            Поиск
-                        </Text>
-                    </TouchableOpacity>
-                )}
+
 
                 {/* Заголовок местоположения */}
                 <LocationHeader
@@ -96,7 +86,26 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                     country={userCountry || undefined}
                     subtitle={subtitle}
                     isSaved={!!userCity}
+                    onRefreshLocation={handleRefreshLocation}
+                    isRefreshingLocation={isLoading || isFetchingLocation || isGeocoding}
+                    isGeocoding={isGeocoding}
                 />
+
+                {showSearchButton && (
+                    <TouchableOpacity
+                        className="flex-row items-center bg-card p-3 rounded-xl mb-4"
+                        onPress={handleSearchPress}
+                        disabled={isOffline}
+                    >
+                        <Text className="text-lg mr-3">🔍</Text>
+                        <Text className="text-text-secondary text-base flex-1">
+                            {userCity ? `Искать другой город` : 'Выбрать город вручную'}
+                        </Text>
+                        <Text className="text-primary text-sm font-medium">
+                            Поиск
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* Карточка погоды */}
                 {weatherData && (
@@ -113,49 +122,13 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                 <ForecastLink />
 
                 {/* Отладочная информация */}
-                <DataSourceInfo
-                    source={dataSource || weatherData?.metadata?.source || 'unknown'}
-                    coordinates={coordinates}
-                    city={userCity}
-                    country={userCountry}
-                    locationSource={locationSource}
-                />
             </ScrollView>
+            <View className="absolute bottom-5 left-2">
+                    <DataSourceInfo
+                        source={dataSource || weatherData?.metadata?.source || 'unknown'}
+                        compact={true} // ← компактный режим!
+                    />
+                </View>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#ffffff',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollViewContent: {
-        padding: 20,
-    },
-    searchButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f1f5f9',
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 15,
-    },
-    searchIcon: {
-        fontSize: 18,
-        marginRight: 10,
-    },
-    searchText: {
-        color: '#64748b',
-        fontSize: 16,
-        flex: 1,
-    },
-    searchActionText: {
-        color: '#3b82f6',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-});

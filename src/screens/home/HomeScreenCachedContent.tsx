@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
-import { WeatherContent } from './WeatherConent';
+import { WeatherContent } from './WeatherContent';
 
 interface HomeScreenCachedContentProps {
     // Данные

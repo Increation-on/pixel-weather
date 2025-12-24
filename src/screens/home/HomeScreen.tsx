@@ -1,4 +1,5 @@
-import { View, StyleSheet } from "react-native";
+import { View} from "react-native";
+import { Link } from "expo-router";
 
 // Импорты компонентов
 import { CitySearch } from '../../components/search/CitySeacrh';
@@ -19,13 +20,13 @@ import { useHomeScreenEffects } from '../../hooks/useHomeScreenEffects';
 export const HomeScreen = () => {
   // 🎯 Все данные
   const homeData = useHomeScreenData();
-  
+
   // 🎯 Эффекты
   useHomeScreenEffects(homeData);
-  
+
   // 🎯 Действия
   const actions = useHomeScreenActions(homeData);
-  
+
   // 🎯 Остальные хуки
   const { isOffline } = useNetwork();
   useHealthCheck();
@@ -36,7 +37,7 @@ export const HomeScreen = () => {
     isSearchVisible,
     setIsSearchVisible,
     refreshing,
-    
+
     // Данные
     type: displayType,
     data: displayData,
@@ -44,7 +45,7 @@ export const HomeScreen = () => {
     userCity,
     userCountry,
     locationSource,
-    
+
     // Состояния загрузки
     isLoading,
     isLoadingWeather,
@@ -52,11 +53,11 @@ export const HomeScreen = () => {
     isFetchingLocation,
     isGeocoding,
     isLoadingStorage,
-    
+
     // Ошибки
     locationError,
     weatherError,
-    
+
     // Функции
     getCurrentCityDisplay,
     getLocationSubtitle,
@@ -153,9 +154,9 @@ export const HomeScreen = () => {
 
   // 🎯 Основной рендеринг (онлайн + есть данные)
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background">
       <OfflineBanner />
-      
+
       <HomeScreenContent
         // Данные
         userCity={userCity}
@@ -163,21 +164,21 @@ export const HomeScreen = () => {
         displayData={displayData}
         coordinates={coordinates}
         locationSource={locationSource}
-        
+
         // Состояния UI
         isSearchVisible={isSearchVisible}
         setIsSearchVisible={setIsSearchVisible}
         refreshing={refreshing}
         isRefetchingWeather={isRefetchingWeather}
-        
+
         // Загрузка
         isLoading={isLoading}
         isFetchingLocation={isFetchingLocation}
         isGeocoding={isGeocoding}
-        
+
         // Ошибки
         locationError={locationError}
-        
+
         // Функции
         handleRefresh={handleRefresh}
         handleRefreshLocation={handleRefreshLocation}
@@ -192,14 +193,13 @@ export const HomeScreen = () => {
         onClose={() => setIsSearchVisible(false)}
         currentCity={getCurrentCityDisplay()}
       />
+      {/* <Link href="/test-pixel-animations" className="font-pixel text-primary">
+        🧪 Тест анимаций
+      </Link>
+      <Link href="/test-colors" className="font-pixel text-primary">
+        🧪 Тест colors
+      </Link> */}
+
     </View>
   );
 };
-
-// Стили пока без изменений
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-});

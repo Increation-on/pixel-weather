@@ -1,6 +1,6 @@
 // src/components/home/HomeScreenContent.tsx (переименовываем в FullWeatherContent или оставляем)
 import React from 'react';
-import { WeatherContent } from './WeatherConent';
+import { WeatherContent } from './WeatherContent';
 import { LocationActions } from '@/src/components/location/LocationActions';
 import { LocationErrorAlert } from '@/src/components/location/LocationErrorAlert';
 
@@ -11,24 +11,24 @@ interface HomeScreenContentProps {
   displayData: any;
   coordinates?: { lat: number; lon: number } | null;
   locationSource?: string;
-  
+
   isSearchVisible: boolean;
   setIsSearchVisible: (visible: boolean) => void;
   refreshing: boolean;
   isRefetchingWeather: boolean;
-  
+
   // Опциональные (для расширенного режима)
   isLoading?: boolean;
   isFetchingLocation?: boolean;
   isGeocoding?: boolean;
   locationError?: any;
-  
+
   // Функции
   handleRefresh: () => void;
   handleRefreshLocation?: () => void;
   getLocationSubtitle?: () => string;
   getCurrentCityDisplay: () => string;
-  
+
   // Дополнительно
   isOffline?: boolean;
   subtitle?: string;
@@ -45,8 +45,6 @@ export const HomeScreenContent: React.FC<HomeScreenContentProps> = (props) => {
     getLocationSubtitle,
     ...weatherContentProps
   } = props;
-
-  const showLocationActions = isLoading !== undefined;
   const showLocationError = locationError !== undefined;
 
   return (
@@ -57,17 +55,13 @@ export const HomeScreenContent: React.FC<HomeScreenContentProps> = (props) => {
         onRefresh={props.handleRefresh}
         isRefetching={props.isRefetchingWeather}
         dataSource={props.displayData?.metadata?.source}
+        // Явно добавляем пропсы для кнопки обновления локации
+        handleRefreshLocation={handleRefreshLocation}
+        isLoading={isLoading}
+        isFetchingLocation={isFetchingLocation}
+        isGeocoding={isGeocoding}
       />
-      
-      {/* Дополнительные компоненты только если нужны */}
-      {showLocationActions && (
-        <LocationActions
-          onRefresh={handleRefreshLocation!}
-          isRefreshing={isLoading || isFetchingLocation || isGeocoding}
-          isGeocoding={isGeocoding}
-        />
-      )}
-      
+
       {showLocationError && (
         <LocationErrorAlert
           error={locationError}
