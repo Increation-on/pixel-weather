@@ -1,5 +1,6 @@
 // src/providers/NetworkProvider.tsx
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { Platform } from 'react-native'; // ← ДОБАВЛЕН ИМПОРТ
 import NetInfo from '@react-native-community/netinfo';
 
 interface NetworkContextType {
@@ -12,8 +13,8 @@ const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOffline, setIsOffline] = useState(false);
-   const [connectionType, setConnectionType] = useState<string>('unknown');
-  const isOfflineRef = useRef(isOffline); // Используем ref для избежания race conditions
+  const [connectionType, setConnectionType] = useState<string>('unknown');
+  const isOfflineRef = useRef(isOffline);
 
   // Основной useEffect для мониторинга сети
   useEffect(() => {
@@ -24,7 +25,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                           state.isInternetReachable === false;
       const newConnectionType = state.type || 'unknown';                    
       
-      // Проверяем, изменилось ли состояние
       if (newIsOffline !== isOfflineRef.current || newConnectionType !== connectionType) {
         console.log(`🌐 NetworkProvider: состояние сети изменилось - ${newIsOffline ? 'offline' : 'online'}`);
         isOfflineRef.current = newIsOffline;
@@ -33,10 +33,8 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     };
 
-    // Подписываемся на изменения сети
     const unsubscribe = NetInfo.addEventListener(handleConnectivityChange);
     
-    // Получаем начальное состояние
     NetInfo.fetch().then(handleConnectivityChange);
 
     return () => {
@@ -47,49 +45,54 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Функция для ручной проверки сети
   const checkNetwork = useCallback(async (): Promise<boolean> => {
-  console.log('🔄 NetworkProvider: ручная проверка сети...');
-  
-  try {
-    // Используем CORS-friendly эндпоинт
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды
+    console.log('🔄 NetworkProvider: ручная проверка сети...');
     
-    // МЕНЯЕМ ЭТУ СТРОКУ:
-    const response = await fetch('https://httpbin.org/status/200', {
-      method: 'HEAD',
-      cache: 'no-cache',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    const isOnline = response.ok;
-    console.log(`🌐 NetworkProvider: ручная проверка - ${isOnline ? 'онлайн' : 'оффлайн'}`);
-    
-    if (isOnline !== !isOfflineRef.current) {
-      isOfflineRef.current = !isOnline;
-      setIsOffline(!isOnline);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      const response = await fetch('https://httpbin.org/status/200', {
+        method: 'HEAD',
+        cache: 'no-cache',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      const isOnline = response.ok;
+      console.log(`🌐 NetworkProvider: ручная проверка - ${isOnline ? 'онлайн' : 'оффлайн'}`);
+      
+      if (isOnline !== !isOfflineRef.current) {
+        isOfflineRef.current = !isOnline;
+        setIsOffline(!isOnline);
+      }
+      
+      return isOnline;
+    } catch (error) {
+      console.log('🌐 NetworkProvider: ручная проверка - ошибка сети', error);
+      
+      if (!isOfflineRef.current) {
+        isOfflineRef.current = true;
+        setIsOffline(true);
+      }
+      
+      return false;
     }
-    
-    return isOnline;
-  } catch (error) {
-    console.log('🌐 NetworkProvider: ручная проверка - ошибка сети', error);
-    
-    if (!isOfflineRef.current) {
-      isOfflineRef.current = true;
-      setIsOffline(true);
-    }
-    
-    return false;
-  }
-}, []);
+  }, []);
 
-  // Для веба - дополнительный мониторинг
+  // Для веба - дополнительный мониторинг (БЕЗОПАСНАЯ ВЕРСИЯ)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Безопасная проверка: только веб-окружение с полным window API
+    const isWebEnvironment = 
+      Platform.OS === 'web' && 
+      typeof window !== 'undefined' && 
+      typeof window.addEventListener === 'function' && 
+      typeof window.removeEventListener === 'function';
+    
+    if (!isWebEnvironment) return;
     
     const handleOnline = () => {
-      console.log('🌐 Web: онлайн событие');
+      console.log('🌐 Web (event): онлайн событие');
       if (isOfflineRef.current) {
         isOfflineRef.current = false;
         setIsOffline(false);
@@ -97,14 +100,14 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     
     const handleOffline = () => {
-      console.log('🌐 Web: оффлайн событие');
+      console.log('🌐 Web (event): оффлайн событие');
       if (!isOfflineRef.current) {
         isOfflineRef.current = true;
         setIsOffline(true);
       }
     };
     
-    console.log('🔧 NetworkProvider: инициализация web мониторинга');
+    console.log('🔧 NetworkProvider: инициализация web event мониторинга');
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

@@ -1,90 +1,68 @@
 // src/components/location/LocationActions.tsx
-import { View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, Image } from 'react-native';
 
 interface LocationActionsProps {
   onRefresh: () => Promise<void> | void;
   isRefreshing?: boolean;
   isGeocoding?: boolean;
+  compact?: boolean; // ← новый пропс для компактного вида
   refreshButtonText?: string;
 }
 
 export const LocationActions: React.FC<LocationActionsProps> = ({
   onRefresh,
   isRefreshing = false,
-  isGeocoding = false, 
+  isGeocoding = false,
+  compact = false, // ← по умолчанию полная версия
   refreshButtonText = 'Обновить местоположение',
 }) => {
   const isLoading = isRefreshing || isGeocoding;
-  
-  return (
-    <View style={styles.container}>
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          onPress={() => onRefresh()}
-          disabled={isLoading}
-          style={[
-            styles.refreshButton,
-            isLoading && styles.refreshButtonDisabled
-          ]}
-        >
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator color="white" size="small" />
-              <Text style={styles.refreshButtonText}>
-                {isGeocoding ? 'Определяем город...' : 'Обновляем...'}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.refreshContent}>
-              <Text style={styles.icon}>📍</Text>
-              <Text style={styles.refreshButtonText}>
-                {refreshButtonText}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
 
-const styles = {
-  container: {
-    marginBottom: 10,
-  },
-  buttonsContainer: {
-    flexDirection: 'row' as const,
-    gap: 10,
-    marginBottom: 10,
-  },
-  refreshButton: {
-    flex: 1,
-    backgroundColor: '#3b82f6',
-    padding: 12,
-    borderRadius: 8,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 8,
-  },
-  refreshButtonDisabled: {
-    backgroundColor: '#94a3b8',
-  },
-  loadingContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 8,
-  },
-  refreshContent: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 8,
-  },
-  icon: {
-    fontSize: 18,
-  },
-  refreshButtonText: {
-    color: 'white',
-    fontSize: 14,
-  },
+  // Компактный вариант (для заголовка)
+  if (compact) {
+    return (
+      <TouchableOpacity
+        onPress={() => onRefresh()}
+        disabled={isLoading}
+        className={`p-2 rounded-lg ${isLoading ? 'bg-gray-800' : 'bg-primary'} active:opacity-80`}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#f7fff7" size="small" />
+        ) : (
+          <Image
+            source={require('@/assets/icons/geo.png')}
+            style={{ width: 24, height: 24, transform: [{ scale: 2.2 }] }}
+            resizeMode="contain"
+            
+          />
+        )}
+      </TouchableOpacity>
+    );
+  }
+
+  // Полный вариант (как был, но с NativeWind)
+  return (
+    <TouchableOpacity
+      onPress={() => onRefresh()}
+      disabled={isLoading}
+      className={`flex-row items-center justify-center p-3 rounded-lg mb-4 ${isLoading ? 'bg-gray-800' : 'bg-primary'
+        } active:opacity-80`}
+    >
+      {isLoading ? (
+        <>
+          <ActivityIndicator color="#f7fff7" size="small" />
+          <Text className="text-white text-sm font-medium ml-2">
+            {isGeocoding ? 'Определяем город...' : 'Обновляем...'}
+          </Text>
+        </>
+      ) : (
+        <>
+          <Text className="text-lg mr-2">📍</Text>
+          <Text className="text-white text-sm font-medium">
+            {refreshButtonText}
+          </Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
 };

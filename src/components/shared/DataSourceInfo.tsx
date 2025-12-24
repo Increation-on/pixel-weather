@@ -2,61 +2,40 @@
 import { View, Text } from 'react-native';
 
 interface DataSourceInfoProps {
-  source: 'open-meteo' | 'weather-api' | 'cached' | string; // Добавляем 'cached' и string
-  coordinates?: { lat: number; lon: number } | null;
-  city?: string | null;
-  country?: string | null;
-  locationSource?: string; // Меняем на string
+  source: 'open-meteo' | 'weather-api' | 'cached' | string;
+  compact?: boolean; // ← новый пропс
 }
 
 export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
   source,
-  coordinates,
-  city,
-  country,
-  locationSource,
+  compact = false,
 }) => {
-  if (!__DEV__) return null; // Только для разработки
+  if (!__DEV__) return null;
 
-  return (
-    <View style={{ marginTop: 20, padding: 10, backgroundColor: '#f1f5f9', borderRadius: 8 }}>
-      <Text style={{ fontSize: 10, color: '#64748b' }}>Отладка:</Text>
-
-      {coordinates && (
-        <Text style={{ fontSize: 10, color: '#64748b' }}>
-          Координаты: {coordinates.lat.toFixed(6)}, {coordinates.lon.toFixed(6)}
-        </Text>
-      )}
-
-      {city && (
-        <Text style={{ fontSize: 10, color: '#64748b' }}>
-          Город: {city}
-        </Text>
-      )}
-
-      {country && (
-        <Text style={{ fontSize: 10, color: '#64748b' }}>
-          Страна: {country}
-        </Text>
-      )}
-
-      {locationSource && (
-        <Text style={{ fontSize: 10, color: '#64748b' }}>
-          Источник геолокации: {
-            locationSource === 'device' ? 'устройство'
-              : locationSource === 'storage' ? 'хранилище'
-              : locationSource === 'default' ? 'по умолчанию'
-              : locationSource // Показываем как есть если неизвестно
-          }
-        </Text>
-      )}
-
-      <Text style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>
-        Данные: {
+  // Компактный режим (только источник)
+  if (compact) {
+    return (
+      <Text className="text-[8px] font-pixel text-text-secondary">
+        Источник: {
           source === 'open-meteo' ? 'Open-Meteo'
             : source === 'weather-api' ? 'WeatherAPI'
             : source === 'cached' ? 'Кэш'
-            : source // Показываем как есть если неизвестно
+            : source
+        }
+      </Text>
+    );
+  }
+
+  // Полная версия (как была, но с NativeWind)
+  return (
+    <View className="mt-5 p-3 bg-card rounded-lg">
+      <Text className="text-[10px] font-pixel text-text-secondary">Отладка:</Text>
+      <Text className="text-[10px] font-pixel text-text-secondary mt-1">
+        Источник данных: {
+          source === 'open-meteo' ? 'Open-Meteo'
+            : source === 'weather-api' ? 'WeatherAPI'
+            : source === 'cached' ? 'Кэш'
+            : source
         }
       </Text>
     </View>

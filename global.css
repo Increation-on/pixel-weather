@@ -2,3 +2,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* В global.css добавьте: */
+.pixel-icon {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.pixel-icon-container {
+  transform: scale(0.8); /* Сжимаем для pixel-эффекта */
+  transform-origin: center;
+}

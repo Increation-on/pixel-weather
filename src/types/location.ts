@@ -1,4 +1,4 @@
-// 🎯 Базовый тип координат
+// 🎯 Базовый тип координат /types/location.ts
 export interface Coordinates {
   latitude: number;
   longitude: number;
