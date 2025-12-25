@@ -44,9 +44,9 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   const textColor = getWeatherColor(weatherDescription);
 
   return (
-    <View className="bg-card p-5 rounded-2xl mb-6 border border-gray-800 overflow-hidden">
+    <View className="bg-card p-5 border border-gray-800 overflow-hidden mt-20">
       {/* Погодная анимация на фоне карточки */}
-      <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none opacity-80">
+      <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none ">
         <PrecipitationAnimation
           weatherType={weatherType}
           intensity="medium"
@@ -54,46 +54,46 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
       </View>
 
       {/* Контент карточки (поверх анимации) */}
-      <View className="relative z-10">
+      <View className="relative z-10 ">
         {/* Температура - основной акцент */}
-        <Text className="text-3xl font-pixel text-secondary text-center">
+        <Text className="text-4xl font-pixel text-secondary text-center mt-3">
           {Math.round(temperature)}°C
         </Text>
         {/*иконка погоды*/}
         <WeatherPixelIcon
           type={weatherType}
-          size={86}
+          size={120}
           className="mt-3"
         />
         {/* Описание погоды */}
-        <View className="flex-row items-center justify-center mt-1">
-          <Text className={`text-xl font-pixel ${textColor} text-center`}>
+        <View className="flex-row items-center justify-center">
+          <Text className={`text-2xl font-pixel ${textColor} text-center`}>
             {weatherDescription}
           </Text>
         </View>
 
         {/* Детали погоды */}
-        <View className="flex-row mt-7">
+        <View className="flex-row mt-10 mb-4">
           {/* Левая колонка - Ощущается */}
           <View className="flex-1 items-center">
-            <Text className="text-xs font-pixel text-text-secondary">Ощущается</Text>
-            <Text className="text-[10px] font-pixel text-text-primary font-semibold mt-3">
+            <Text className="text-[10px] font-pixel text-text-secondary">Ощущается</Text>
+            <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
               {Math.round(feelsLike)}°C
             </Text>
           </View>
 
           {/* Центральная колонка - Ветер */}
           <View className="flex-1 items-center border-l border-r border-gray-700">
-            <Text className="text-xs font-pixel text-text-secondary">Ветер</Text>
-            <Text className="text-[10px] font-pixel text-text-primary font-semibold mt-3">
+            <Text className="text-[10px] font-pixel text-text-secondary">Ветер</Text>
+            <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
               {windSpeed} м/с
             </Text>
           </View>
 
           {/* Правая колонка - Влажность */}
           <View className="flex-1 items-center">
-            <Text className="text-xs font-pixel text-text-secondary">Влажность</Text>
-            <Text className="text-[10px] font-pixel text-text-primary font-semibold mt-3">
+            <Text className="text-[10px] font-pixel text-text-secondary">Влажность</Text>
+            <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
               {humidity}%
             </Text>
           </View>

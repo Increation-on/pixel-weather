@@ -3,14 +3,16 @@ import React from 'react';
 import {
     View,
     ScrollView,
-    TouchableOpacity,
-    Text,
     RefreshControl
 } from 'react-native';
 import { LocationHeader } from '@/src/components/location/LocationHeader';
 import { WeatherCard } from '@/src/components/weather/WeatherCard';
-import { ForecastLink } from '@/src/components/navigation/ForeCastLink';
 import { DataSourceInfo } from '@/src/components/shared/DataSourceInfo';
+import { SearchButton } from '@/src/components/search/SearchButton';
+
+
+import { TouchableOpacity, Text, Modal, Button } from 'react-native';
+import { useState } from 'react';
 
 interface WeatherContentProps {
     // Основные данные
@@ -43,6 +45,8 @@ interface WeatherContentProps {
     isGeocoding?: boolean;
 }
 
+
+
 export const WeatherContent: React.FC<WeatherContentProps> = ({
     userCity,
     userCountry,
@@ -62,7 +66,7 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
     isGeocoding = false,
 }) => {
     const handleSearchPress = onSearchPress || (() => setIsSearchVisible(true));
-
+const [testModalVisible, setTestModalVisible] = useState(false)
     return (
         <View className="flex-1 bg-background">
             <ScrollView
@@ -77,7 +81,6 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                     />
                 }
             >
-                {/* Кнопка поиска */}
 
 
                 {/* Заголовок местоположения */}
@@ -92,20 +95,14 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                 />
 
                 {showSearchButton && (
-                    <TouchableOpacity
-                        className="flex-row items-center bg-card p-3 rounded-xl mb-4"
-                        onPress={handleSearchPress}
-                        disabled={isOffline}
-                    >
-                        <Text className="text-lg mr-3">🔍</Text>
-                        <Text className="text-text-secondary text-base flex-1">
-                            {userCity ? `Искать другой город` : 'Выбрать город вручную'}
-                        </Text>
-                        <Text className="text-primary text-sm font-medium">
-                            Поиск
-                        </Text>
-                    </TouchableOpacity>
+                    <SearchButton
+                        handleSearchPress={handleSearchPress}
+                        isOffline={isOffline}
+                        userCity={userCity}
+                    />
                 )}
+
+
 
                 {/* Карточка погоды */}
                 {weatherData && (
@@ -118,17 +115,14 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                     />
                 )}
 
-                {/* Ссылка на прогноз */}
-                <ForecastLink />
-
                 {/* Отладочная информация */}
             </ScrollView>
-            <View className="absolute bottom-5 left-2">
-                    <DataSourceInfo
-                        source={dataSource || weatherData?.metadata?.source || 'unknown'}
-                        compact={true} // ← компактный режим!
-                    />
-                </View>
+            <View className="absolute bottom-5 left-[21px]">
+                <DataSourceInfo
+                    source={dataSource || weatherData?.metadata?.source || 'unknown'}
+                    compact={true} // ← компактный режим!
+                />
+            </View>
         </View>
     );
 };
