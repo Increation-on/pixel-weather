@@ -24,13 +24,13 @@ export const LocationActions: React.FC<LocationActionsProps> = ({
       <TouchableOpacity
         onPress={() => onRefresh()}
         disabled={isLoading}
-        className={`p-2 rounded-lg ${isLoading ? 'bg-gray-800' : 'bg-primary'} active:opacity-80`}
+        className={`p-2 ${isLoading ? 'bg-gray-800' : ''} active:opacity-80`}
       >
         {isLoading ? (
           <ActivityIndicator color="#f7fff7" size="small" />
         ) : (
           <Image
-            source={require('@/assets/icons/geo.png')}
+            source={require('@/assets/icons/refresh-geo.png')}
             style={{ width: 24, height: 24, transform: [{ scale: 2.2 }] }}
             resizeMode="contain"
             

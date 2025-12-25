@@ -1,17 +1,22 @@
+// src/components/weather/CitySearch.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  TextInput,
-  FlatList,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
+  FlatList,
   Modal,
   TouchableWithoutFeedback,
   Keyboard,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import { CitySearchResult } from '../../api/services/city-search.service';
+import { CityItem } from './CityItem';
+import { SearchInput } from './SearchInput';
+import { SearchStatus } from './SearchStatus';
+
+const { height } = Dimensions.get('window');
 
 interface CitySearchProps {
   onCitySelect: (city: CitySearchResult) => void;
@@ -57,7 +62,6 @@ export const CitySearch: React.FC<CitySearchProps> = ({
 
     const timeout = setTimeout(async () => {
       try {
-        // Импортируем сервис динамически чтобы избежать циклических зависимостей
         const { CitySearchService } = await import('../../api/services/city-search.service');
         const cities = await CitySearchService.searchCities(query);
         setResults(cities);
@@ -67,7 +71,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({
       } finally {
         setIsLoading(false);
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     setSearchTimeout(timeout);
 
@@ -91,235 +95,94 @@ export const CitySearch: React.FC<CitySearchProps> = ({
     if (onClose) onClose();
   };
 
-  const renderCityItem = ({ item }: { item: CitySearchResult }) => (
-    <TouchableOpacity
-      style={styles.cityItem}
-      onPress={() => handleCitySelect(item)}
-    >
-      <Text style={styles.cityName}>
-        {item.city || 'Неизвестный город'}
-      </Text>
-      <Text style={styles.cityDetails}>
-        {item.country && `${item.country} • `}
-        {item.type === 'city' ? 'Город' : 
-         item.type === 'town' ? 'Посёлок' : 
-         item.type === 'village' ? 'Деревня' : 'Административный'}
-      </Text>
-      <Text style={styles.cityCoordinates}>
-        {item.lat.toFixed(4)}, {item.lon.toFixed(4)}
-      </Text>
-    </TouchableOpacity>
-  );
-
   const renderContent = () => (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        {/* Заголовок */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Поиск города</Text>
-          {currentCity && (
-            <Text style={styles.currentCity}>
-              Текущий: {currentCity}
-            </Text>
-          )}
+      <View className="flex-1 bg-background">
+        {/* Шапка с кнопкой закрытия */}
+        <View className="flex-row justify-between items-center p-4 border-b-2 border-gray-800">
+          <Text className="text-text-primary font-pixel text-lg">
+            ПОИСК ГОРОДА
+          </Text>
+          <TouchableOpacity 
+            onPress={handleClose}
+            className="border-2 border-gray-800 p-2"
+          >
+            <Text className="text-text-secondary font-pixel">✕</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Поле поиска */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Введите название города..."
-            placeholderTextColor="#94a3b8"
-            value={query}
+        {currentCity && (
+          <View className="p-4 bg-card/50">
+            <Text className="text-text-secondary font-pixel text-xs">
+              ТЕКУЩИЙ: <Text className="text-primary font-pixel">{currentCity}</Text>
+            </Text>
+          </View>
+        )}
+
+        {/* Основной контент */}
+        <View className="flex-1 p-4">
+          <SearchInput
+            query={query}
             onChangeText={setQuery}
-            autoFocus={true}
-            autoCapitalize="words"
           />
-          {query.length > 0 && (
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => setQuery('')}
-            >
-              <Text style={styles.clearButtonText}>✕</Text>
-            </TouchableOpacity>
+
+          <SearchStatus
+            isLoading={isLoading}
+            error={error}
+            query={query}
+            hasResults={results.length > 0}
+          />
+
+          {results.length > 0 && (
+            <FlatList
+              data={results}
+              renderItem={({ item }) => (
+                <CityItem
+                  item={item}
+                  onSelect={handleCitySelect}
+                />
+              )}
+              keyExtractor={(item, index) => 
+                `${item.lat}-${item.lon}-${index}`
+              }
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+            />
           )}
+
+          {/* <TouchableOpacity
+            className="border-2 border-gray-800 bg-card p-4 items-center mt-4 active:opacity-80"
+            onPress={handleClose}
+          >
+            <Text className="text-text-primary font-pixel">ОТМЕНА</Text>
+          </TouchableOpacity> */}
         </View>
-
-        {/* Состояния */}
-        {isLoading && (
-          <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#3b82f6" />
-            <Text style={styles.messageText}>Ищем города...</Text>
-          </View>
-        )}
-
-        {error && (
-          <View style={styles.centerContainer}>
-            <Text style={styles.errorText}>❌ {error}</Text>
-          </View>
-        )}
-
-        {!isLoading && !error && query.length < 2 && (
-          <View style={styles.centerContainer}>
-            <Text style={styles.messageText}>
-              Введите хотя бы 2 символа для поиска
-            </Text>
-          </View>
-        )}
-
-        {!isLoading && !error && results.length === 0 && query.length >= 2 && (
-          <View style={styles.centerContainer}>
-            <Text style={styles.messageText}>
-              Город не найден. Попробуйте другое название.
-            </Text>
-          </View>
-        )}
-
-        {/* Результаты */}
-        {results.length > 0 && (
-          <FlatList
-            data={results}
-            renderItem={renderCityItem}
-            keyExtractor={(item, index) => 
-              `${item.lat}-${item.lon}-${index}`
-            }
-            style={styles.resultsList}
-            keyboardShouldPersistTaps="handled"
-          />
-        )}
-
-        {/* Кнопка отмены */}
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={handleClose}
-        >
-          <Text style={styles.cancelButtonText}>Отмена</Text>
-        </TouchableOpacity>
       </View>
     </TouchableWithoutFeedback>
   );
 
-  // Если visible не передано, рендерим как встроенный компонент
   if (visible === undefined) {
     return renderContent();
   }
 
-  // Иначе рендерим как модалку
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={true}
+      statusBarTranslucent={true}
       onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      {/* Полупрозрачный фон */}
+      <View className="flex-1 bg-black/70 justify-end">
+        {/* Модалка снизу - 85% высоты */}
+        <View 
+          className="bg-background rounded-t-2xl border-t-2 border-gray-800"
+          style={{ height: height * 0.85 }}
+        >
           {renderContent()}
         </View>
       </View>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-  },
-  container: {
-    padding: 20,
-  },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 5,
-  },
-  currentCity: {
-    fontSize: 14,
-    color: '#64748b',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f8fafc',
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 12,
-    padding: 4,
-  },
-  clearButtonText: {
-    fontSize: 18,
-    color: '#94a3b8',
-  },
-  centerContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#64748b',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#dc2626',
-    textAlign: 'center',
-  },
-  resultsList: {
-    maxHeight: 300,
-    marginBottom: 20,
-  },
-  cityItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  cityName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  cityDetails: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 2,
-  },
-  cityCoordinates: {
-    fontSize: 12,
-    color: '#94a3b8',
-  },
-  cancelButton: {
-    backgroundColor: '#f1f5f9',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#475569',
-    fontWeight: '500',
-  },
-});

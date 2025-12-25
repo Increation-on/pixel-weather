@@ -193,13 +193,6 @@ export const HomeScreen = () => {
         onClose={() => setIsSearchVisible(false)}
         currentCity={getCurrentCityDisplay()}
       />
-      {/* <Link href="/test-pixel-animations" className="font-pixel text-primary">
-        🧪 Тест анимаций
-      </Link>
-      <Link href="/test-colors" className="font-pixel text-primary">
-        🧪 Тест colors
-      </Link> */}
-
     </View>
   );
 };

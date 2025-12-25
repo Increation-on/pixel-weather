@@ -15,8 +15,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-  'PressStart2P-Regular': PressStart2P_400Regular,
-});
+    'PressStart2P-Regular': PressStart2P_400Regular,
+  });
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -32,7 +32,11 @@ export default function RootLayout() {
     <NetworkProvider>
       <ToastProvider>
         <QueryClientProvider client={queryClient}>
-          <Stack />
+          <Stack
+            screenOptions={{
+              headerShown: false, // ← ЭТО ГЛАВНОЕ
+            }}
+          />
         </QueryClientProvider>
       </ToastProvider>
     </NetworkProvider>
