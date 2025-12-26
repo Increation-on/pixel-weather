@@ -19,10 +19,12 @@ export interface CurrentWeather {
   weatherDescription: string;
   windSpeed: number;
   isDay: boolean;
-  feelsLike: number;       // УБРАТЬ "?" - сделать обязательным
-  humidity: number;        // ДОБАВИТЬ новое поле
-  precipitation?: number;  // опционально
-  pressure?: number;       // опционально
+  feelsLike: number;
+  humidity: number;
+  precipitation?: number;
+  pressure?: number;       // Уже есть - оставляем как есть
+  visibility?: number;     // ДОБАВИТЬ - видимость в метрах
+  uvIndex?: number;        // ДОБАВИТЬ - индекс ультрафиолета
 }
 
 export interface DailyForecast {

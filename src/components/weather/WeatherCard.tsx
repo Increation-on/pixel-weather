@@ -44,7 +44,7 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   const textColor = getWeatherColor(weatherDescription);
 
   return (
-    <View className="bg-card p-5 border border-gray-800 overflow-hidden mt-20">
+    <View className="bg-card p-5 border border-gray-800 overflow-hidden ">
       {/* Погодная анимация на фоне карточки */}
       <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none ">
         <PrecipitationAnimation
