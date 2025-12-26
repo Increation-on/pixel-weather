@@ -13,6 +13,9 @@ export interface WeatherAPICurrent {
   feelslike_c: number;
   humidity: number;
   cloud: number;
+  pressure_mb: number;    // давление в миллибарах
+  vis_km: number;         // видимость в километрах
+  uv: number;             // УФ-индекс
 }
 
 export interface WeatherAPILocation {

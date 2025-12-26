@@ -3,6 +3,7 @@ export default {
   expo: {
     name: "Pixel-weather",
     slug: "Pixel-weather",
+    orientation: "portrait",
     userInterfaceStyle: "automatic", // Добавьте эту строку
     android: {
       userInterfaceStyle: "automatic" // Добавьте и эту строку для Android

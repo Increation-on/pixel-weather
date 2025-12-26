@@ -10,18 +10,21 @@ export async function fetchOpenMeteo(
   return ApiErrorHandler.wrap(async () => {
     // ВРЕМЕННО ДЛЯ ТЕСТА (раскомментируй):
     // throw new Error('Тестовая ошибка Open-Meteo');
-    
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&hourly=relativehumidity_2m&timezone=auto`;
-    
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,uv_index_max&hourly=relativehumidity_2m,pressure_msl,visibility&current=uv_index&timezone=auto`;
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`Open-Meteo API Error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     const humidity = data.hourly?.relativehumidity_2m?.[0] || 50;
-    
+    const pressure = data.hourly?.pressure_msl?.[0] || 1013;
+    const visibility = data.hourly?.visibility?.[0] || 10000;
+    const uvIndex = data.current?.uv_index || data.daily?.uv_index_max?.[0] || 0;
+
     return {
       latitude: data.latitude,
       longitude: data.longitude,
@@ -35,6 +38,9 @@ export async function fetchOpenMeteo(
         isDay: data.current_weather.is_day === 1,
         feelsLike: Math.round(data.current_weather.temperature - 2),
         humidity: Math.round(humidity),
+        pressure: Math.round(pressure),
+        visibility: Math.round(visibility),
+        uvIndex: Math.round(uvIndex),
       },
       daily: data.daily.time.map((time: string, index: number) => ({
         time,
