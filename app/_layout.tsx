@@ -5,6 +5,7 @@ import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { SplashScreen } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar'; // ← ДОБАВИТЬ
 import { ToastProvider } from '@/src/providers/ToastProvider';
 import { NetworkProvider } from '@/src/providers/NetworkProvider';
 import { queryClient } from '@/src/lib/react-query';
@@ -34,7 +35,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <Stack
             screenOptions={{
-              headerShown: false, // ← ЭТО ГЛАВНОЕ
+              headerShown: false,
             }}
           />
         </QueryClientProvider>

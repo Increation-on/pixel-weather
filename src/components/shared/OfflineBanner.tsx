@@ -1,5 +1,5 @@
 // src/components/shared/OfflineBanner.tsx
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useNetwork } from '@/src/providers/NetworkProvider';
 import { useState } from 'react';
 import { useToast } from '@/src/hooks/useToast';
@@ -9,29 +9,43 @@ export const OfflineBanner = () => {
   const [isChecking, setIsChecking] = useState(false);
   const { showToast } = useToast();
 
-  console.log('🚨 OfflineBanner: isOffline =', isOffline);
-
-
+  // Пиксельные сообщения в верхнем регистре
   const getBannerMessage = () => {
     if (connectionType === 'none') {
-      return 'Нет подключения к интернету';
+      return 'НЕТ ПОДКЛЮЧЕНИЯ К ИНТЕРНЕТУ';
     }
 
     if (connectionType === 'cellular') {
-      return 'Мобильная сеть не доступна';
+      return 'МОБИЛЬНАЯ СЕТЬ НЕ ДОСТУПНА';
     }
 
     if (connectionType === 'wifi') {
-      return 'Wi-Fi подключен, но нет доступа в интернет';
+      return 'WI-FI ПОДКЛЮЧЕН, НО НЕТ ДОСТУПА В ИНТЕРНЕТ';
     }
 
-    return 'Проблемы с подключением к интернету';
+    return 'ПРОБЛЕМЫ С ПОДКЛЮЧЕНИЕМ К ИНТЕРНЕТУ';
   };
 
-  const getBannerEmoji = () => {
-    if (connectionType === 'cellular') return '📱';
-    if (connectionType === 'wifi') return '📶';
-    return '🚫';
+  // Используем иконку из EmptyState (офлайн иконка)
+  const renderIcon = () => {
+    try {
+      // Пытаемся использовать ту же иконку что в EmptyState
+      return (
+        <Image
+          source={require('@/assets/icons/errors/offline.png')}
+          className="w-5 h-5 mr-2"
+          style={{ 
+            tintColor: '#f59e0b', // warning цвет
+          }}
+          resizeMode="contain"
+        />
+      );
+    } catch (error) {
+      // Fallback на эмодзи если иконка не найдена
+      const emoji = connectionType === 'cellular' ? '📱' : 
+                   connectionType === 'wifi' ? '📶' : '🚫';
+      return <Text className="text-lg mr-2">{emoji}</Text>;
+    }
   };
 
   if (!isOffline) {
@@ -41,7 +55,6 @@ export const OfflineBanner = () => {
   const handleRetry = async () => {
     setIsChecking(true);
     try {
-      // 1. Проверяем сеть
       const isOnline = await checkNetwork();
 
       if (!isOnline) {
@@ -53,14 +66,11 @@ export const OfflineBanner = () => {
         return;
       }
 
-      // 2. Сеть есть - показываем успех
       showToast({
         message: 'Подключение восстановлено!',
         type: 'success',
         duration: 2000
       });
-
-      // 3. Баннер автоматически скроется т.к. isOffline станет false
 
     } catch (error) {
       showToast({
@@ -72,37 +82,56 @@ export const OfflineBanner = () => {
     }
   };
 
-
-
   return (
-    <View style={{
-      backgroundColor: '#f59e0b',
-      padding: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between'
-    }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-        <Text style={{ fontSize: 16, marginRight: 8 }}>{getBannerEmoji()}</Text> 
-        <Text style={{ color: 'white', fontWeight: '500', flex: 1 }}>
-          {getBannerMessage()} 
-        </Text>
-      </View>
+    <View className="border-2 border-warning bg-card overflow-hidden">
+      {/* Верхняя акцентная полоса */}
+      <View className="h-1 bg-warning" />
+      
+      <View className="p-3">
+        <View className="flex-row items-center justify-between">
+          {/* Левая часть: иконка + текст */}
+          <View className="flex-row items-center flex-1">
+            {renderIcon()}
+            <Text 
+              className="text-danger font-pixel text-xs flex-1"
+              numberOfLines={2}
+              style={{ lineHeight: 16 }}
+            >
+              {getBannerMessage()}
+            </Text>
+          </View>
 
-      <TouchableOpacity
-        onPress={handleRetry}
-        disabled={isChecking}
-        style={{
-          backgroundColor: '#d97706',
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          borderRadius: 4
-        }}
-      >
-        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 12 }}>
-          {isChecking ? 'Проверка...' : 'ПОВТОРИТЬ'}
-        </Text>
-      </TouchableOpacity>
+          {/* Правая часть: пиксельная кнопка */}
+          <TouchableOpacity
+            onPress={handleRetry}
+            disabled={isChecking}
+            className={`
+              px-3 py-1.5 
+              border-2 
+              ${isChecking ? 'border-gray-600 bg-gray-800' : 'border-warning bg-warning'}
+              active:opacity-80
+              ml-2
+              min-w-[100px]
+            `}
+            style={{
+              shadowColor: '#f59e0b',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 0,
+            }}
+          >
+            <Text className="text-white font-pixel text-xs text-center">
+              {isChecking ? 'ПРОВЕРКА...' : 'ПОВТОРИТЬ'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Декоративные пиксельные уголки */}
+        <View className="absolute top-1 left-1 w-2 h-2 border-l-2 border-t-2 border-warning opacity-50" />
+        <View className="absolute top-1 right-1 w-2 h-2 border-r-2 border-t-2 border-warning opacity-50" />
+        <View className="absolute bottom-1 left-1 w-2 h-2 border-l-2 border-b-2 border-warning opacity-50" />
+        <View className="absolute bottom-1 right-1 w-2 h-2 border-r-2 border-b-2 border-warning opacity-50" />
+      </View>
     </View>
   );
 };
