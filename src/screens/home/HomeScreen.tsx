@@ -1,14 +1,16 @@
-import { View} from "react-native";
-import { Link } from "expo-router";
+// Весь файл HomeScreen.tsx с исправлениями
+import { View, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router';
 
 // Импорты компонентов
 import { CitySearch } from '../../components/search/CitySeacrh';
 import { OfflineBanner } from '../../components/shared/OfflineBanner';
 import { HomeScreenContent } from './HomeScreenContent';
-import { HomeScreenCachedContent } from './HomeScreenCachedContent'; // Добавляем
-import { HomeScreenLoading } from './HomeScreenLoading'; // Добавляем
-import { HomeScreenError } from './HomeScreenError'; // Добавляем
-import { HomeScreenEmpty } from './HomeScreenEmpty'; // Добавляем
+import { HomeScreenCachedContent } from './HomeScreenCachedContent';
+import { HomeScreenLoading } from './HomeScreenLoading';
+import { HomeScreenError } from './HomeScreenError';
+import { HomeScreenEmpty } from './HomeScreenEmpty';
 
 // Хуки
 import { useNetwork } from '../../providers/NetworkProvider';
@@ -62,7 +64,7 @@ export const HomeScreen = () => {
     getCurrentCityDisplay,
     getLocationSubtitle,
     handleRefreshLocation,
-    refetchWeather, // Добавляем
+    refetchWeather,
   } = homeData;
 
   // 🎯 Извлекаем действия
@@ -84,79 +86,98 @@ export const HomeScreen = () => {
     getCurrentCityDisplay,
   };
 
+  const statusBarHeight = StatusBar.currentHeight || 0;
+
+  // Обёртка для ВСЕХ состояний
+  const ScreenContainer = ({ children }: { children: React.ReactNode }) => (
+    <View className="flex-1 bg-background" style={{ marginTop: statusBarHeight + 10 }}>
+      {children}
+    </View>
+  );
+
   // 🎯 Состояния загрузки
   if ((isLoading || isGeocoding || isLoadingStorage) && !userCity) {
     return (
-      <HomeScreenLoading
-        isLoading={isLoading}
-        isGeocoding={isGeocoding}
-        isLoadingStorage={isLoadingStorage}
-        isLoadingWeather={isLoadingWeather}
-        userCity={userCity}
-        isOffline={isOffline}
-        displayType={displayType}
-        displayData={displayData}
-        cachedContentProps={cachedContentProps}
-        onRetry={checkNetwork}
-      />
+      <ScreenContainer>
+        <HomeScreenLoading
+          isLoading={isLoading}
+          isGeocoding={isGeocoding}
+          isLoadingStorage={isLoadingStorage}
+          isLoadingWeather={isLoadingWeather}
+          userCity={userCity}
+          isOffline={isOffline}
+          displayType={displayType}
+          displayData={displayData}
+          cachedContentProps={cachedContentProps}
+          onRetry={checkNetwork}
+        />
+      </ScreenContainer>
     );
   }
 
   // 🎯 Оффлайн + есть кэш
   if (isOffline && displayType === 'cached') {
     return (
-      <HomeScreenCachedContent {...cachedContentProps} />
+      <ScreenContainer>
+        <HomeScreenCachedContent {...cachedContentProps} />
+      </ScreenContainer>
     );
   }
 
   // 🎯 Загрузка погоды
   if (isLoadingWeather) {
     return (
-      <HomeScreenLoading
-        isLoading={false}
-        isGeocoding={false}
-        isLoadingStorage={false}
-        isLoadingWeather={true}
-        userCity={userCity}
-        isOffline={isOffline}
-        displayType={displayType}
-        displayData={displayData}
-        cachedContentProps={cachedContentProps}
-        onRetry={checkNetwork}
-      />
+      <ScreenContainer>
+        <HomeScreenLoading
+          isLoading={false}
+          isGeocoding={false}
+          isLoadingStorage={false}
+          isLoadingWeather={true}
+          userCity={userCity}
+          isOffline={isOffline}
+          displayType={displayType}
+          displayData={displayData}
+          cachedContentProps={cachedContentProps}
+          onRetry={checkNetwork}
+        />
+      </ScreenContainer>
     );
   }
 
   // 🎯 Ошибка погоды
   if (weatherError) {
     return (
-      <HomeScreenError
-        error={weatherError}
-        isOffline={isOffline}
-        displayType={displayType}
-        cachedContentProps={cachedContentProps}
-        onRetry={refetchWeather}
-      />
+      <ScreenContainer>
+        <HomeScreenError
+          error={weatherError}
+          isOffline={isOffline}
+          displayType={displayType}
+          cachedContentProps={cachedContentProps}
+          onRetry={refetchWeather}
+        />
+      </ScreenContainer>
     );
   }
 
   // 🎯 Нет данных
   if (!displayData) {
     return (
-      <HomeScreenEmpty
-        isOffline={isOffline}
-        displayType={displayType}
-        cachedContentProps={cachedContentProps}
-        onRetry={refetchWeather}
-      />
+      <ScreenContainer>
+        <HomeScreenEmpty
+          isOffline={isOffline}
+          displayType={displayType}
+          cachedContentProps={cachedContentProps}
+          onRetry={refetchWeather}
+        />
+      </ScreenContainer>
     );
   }
 
   // 🎯 Основной рендеринг (онлайн + есть данные)
   return (
-    <View className="flex-1 bg-background">
+    <ScreenContainer>
       <OfflineBanner />
-
+      
       <HomeScreenContent
         // Данные
         userCity={userCity}
@@ -193,6 +214,6 @@ export const HomeScreen = () => {
         onClose={() => setIsSearchVisible(false)}
         currentCity={getCurrentCityDisplay()}
       />
-    </View>
+    </ScreenContainer>
   );
 };

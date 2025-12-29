@@ -1,35 +1,45 @@
 // src/components/shared/LoadingState.tsx
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { PixelLoader } from './PixelLoader';
 
 interface LoadingStateProps {
   message?: string;
-  size?: 'small' | 'large';
-  color?: string;
+  size?: 'small' | 'medium' | 'large';
+  color?: 'primary' | 'secondary' | 'white';
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({
   message = 'Загружаем...',
   size = 'large',
-  color = '#3b82f6',
+  color = 'primary',
 }) => {
+  // Маппинг размеров: 'small' -> 'medium', 'large' -> 'large'
+  const pixelLoaderSize = size === 'small' ? 'medium' : 
+                         size === 'large' ? 'large' : 'medium';
+
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size={size} color={color} />
-      <Text style={styles.message}>{message}</Text>
+    <View className="flex-1 justify-center items-center p-5">
+      {/* Пиксельный лоадер */}
+      <PixelLoader 
+        size={pixelLoaderSize} 
+        color={color}
+        className="mb-6"
+      />
+      
+      {/* Пиксельный текст */}
+      <Text 
+        className="text-text-primary text-center font-pixel"
+        style={{ fontSize: size === 'small' ? 10 : 12 }}
+      >
+        {message.toUpperCase()}
+      </Text>
+      
+      {/* Мигающие точки для индикации процесса */}
+      <View className="flex-row mt-2">
+        <Text className="text-primary font-pixel text-xs">.</Text>
+        <Text className="text-primary font-pixel text-xs opacity-50">.</Text>
+        <Text className="text-primary font-pixel text-xs opacity-25">.</Text>
+      </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  message: {
-    marginTop: 20,
-    fontSize: 16,
-    color: '#475569',
-  },
-});

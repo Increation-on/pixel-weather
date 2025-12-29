@@ -7,6 +7,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { DataSourceInfo } from '../shared/DataSourceInfo';
 
 const { width } = Dimensions.get('window');
 
@@ -44,7 +45,7 @@ export const WeatherSlider: React.FC<WeatherSliderProps> = ({
         ))}
       </ScrollView>
 
-      <View className="flex-row justify-center items-center py-7  border-gray-800">
+      <View className="flex-row justify-center items-center py-4 border-gray-800 z-30 pointer-events-none border-2">
         {children.map((_, index) => (
           <View
             key={index}
