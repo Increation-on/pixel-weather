@@ -83,9 +83,9 @@ export const OfflineBanner = () => {
       justifyContent: 'space-between'
     }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-        <Text style={{ fontSize: 16, marginRight: 8 }}>{getBannerEmoji()}</Text> {/* <- Изменено */}
+        <Text style={{ fontSize: 16, marginRight: 8 }}>{getBannerEmoji()}</Text> 
         <Text style={{ color: 'white', fontWeight: '500', flex: 1 }}>
-          {getBannerMessage()} {/* <- Изменено */}
+          {getBannerMessage()} 
         </Text>
       </View>
 
