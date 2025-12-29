@@ -20,43 +20,59 @@ interface ToastContextValue {
 // 2. Создаем контекст с правильной типизацией
 export const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
-// 3. Создаем компонент Toast (простая версия)
+// 3. Toast компонент (как было, но с пиксельным шрифтом)
 const ToastComponent: React.FC<ToastConfig & { onClose: () => void }> = ({ 
   message, 
   type, 
   onClose 
 }) => {
-  // Цвета для разных типов toast
+  // Цвета для разных типов toast (используем warning из темы)
   const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-yellow-500',
+    success: 'bg-success',
+    error: 'bg-danger',
+    info: 'bg-primary',
+    warning: 'bg-warning', // ← ваш новый цвет
   }[type];
 
-  // Простая анимация появления (позже добавим NativeWind анимации)
   return (
     <View 
       className={`
-        absolute top-10 left-4 right-4 p-4 rounded-lg 
+        absolute top-10 mx-4 p-4 rounded-lg 
         ${bgColor} shadow-lg z-50
         flex-row items-center justify-between
       `}
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 0,
+        elevation: 8,
+      }}
     >
-      <Text className="text-white text-base flex-1 font-medium">
-        {message}
-      </Text>
+      {/* Сообщение с пиксельным шрифтом */}
       <Text 
-        className="text-white ml-2 text-lg font-bold"
-        onPress={onClose}
+        className="text-white text-sm flex-1 font-pixel uppercase"
+        style={{ lineHeight: 18 }}
       >
-        ×
+        {message.toUpperCase()}
+      </Text>
+      
+      {/* Кнопка закрытия с пиксельным шрифтом */}
+      <Text 
+        className="text-white ml-3 text-lg"
+        onPress={onClose}
+        style={{ 
+          fontFamily: 'PressStart2P-Regular',
+          lineHeight: 20
+        }}
+      >
+        ✕
       </Text>
     </View>
   );
 };
 
-// 4. Создаем провайдер
+// 4. Создаем провайдер (как было)
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toast, setToast] = useState<ToastConfig | null>(null);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
@@ -95,6 +111,3 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     </ToastContext.Provider>
   );
 };
-
-// 5. Экспортируем хук (создадим в отдельном файле)
-// Это нужно для разделения кода и избежания circular dependencies
