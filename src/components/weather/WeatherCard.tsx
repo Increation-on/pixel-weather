@@ -62,7 +62,7 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
         {/*иконка погоды*/}
         <WeatherPixelIcon
           type={weatherType}
-          size={120}
+          size={82}
           className="mt-3"
         />
         {/* Описание погоды */}

@@ -1,6 +1,7 @@
 // src/components/location/LocationHeader.tsx
 import { View, Text } from 'react-native';
-import { LocationActions } from './LocationActions'; // ← импортируем
+import { LocationActions } from './LocationActions';
+import { SettingsButton } from '../shared/SettingsButton'; // ← новый импорт
 
 interface LocationHeaderProps {
   city?: string | null;
@@ -8,7 +9,7 @@ interface LocationHeaderProps {
   subtitle?: string;
   isSaved?: boolean;
   showSavedBadge?: boolean;
-  // Пропсы для кнопки
+  // Пропсы для кнопки обновления (SettingsButton сам знает куда вести)
   onRefreshLocation?: () => void;
   isRefreshingLocation?: boolean;
   isGeocoding?: boolean;
@@ -32,7 +33,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({
 
   return (
     <View className="mt-6">
-      {/* Заголовок и кнопка в одной строке */}
+      {/* Заголовок и кнопки в одной строке */}
       <View className="flex-row items-center justify-between">
         <Text 
           className="text-base font-pixel text-secondary flex-1 mr-3" 
@@ -41,15 +42,20 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({
           {getDisplayLocation()}
         </Text>
         
-        {/* Кнопка обновления местоположения (компактная) */}
-        {onRefreshLocation && (
-          <LocationActions
-            onRefresh={onRefreshLocation}
-            isRefreshing={isRefreshingLocation}
-            isGeocoding={isGeocoding}
-            compact={true} // ← компактный режим!
-          />
-        )}
+        {/* Кнопки обновления и настроек */}
+        <View className="flex-row items-center space-x-1">
+          {onRefreshLocation && (
+            <LocationActions
+              onRefresh={onRefreshLocation}
+              isRefreshing={isRefreshingLocation}
+              isGeocoding={isGeocoding}
+              compact={true}
+            />
+          )}
+          
+          {/* Кнопка настроек (использует Link) */}
+          <SettingsButton />
+        </View>
       </View>
       
       {/* Подзаголовок */}
