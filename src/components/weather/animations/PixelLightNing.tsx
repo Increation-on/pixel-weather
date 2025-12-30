@@ -17,11 +17,11 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
     const flashSequence = () => {
       // СБРАСЫВАЕМ все анимации к начальным значениям
       opacity.setValue(0);
-      
+
       // Случайная позиция для этой вспышки
       const randomX = Math.random() * width * 0.8;
       const randomY = Math.random() * height * 0.3;
-      
+
       translateX.setValue(randomX);
       translateY.setValue(randomY);
 
@@ -38,7 +38,7 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
           duration: 120,
           useNativeDriver: true,
         }),
-        
+
         // 2. Вторая вспышка (если интенсивность medium/heavy)
         ...(intensity !== 'light' ? [
           Animated.timing(opacity, {
@@ -52,7 +52,7 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
             useNativeDriver: true,
           }),
         ] : []),
-        
+
         // 3. Третья вспышка (только для heavy)
         ...(intensity === 'heavy' ? [
           Animated.timing(opacity, {
@@ -81,7 +81,7 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
             medium: 2000 + Math.random() * 3000,
             heavy: 1000 + Math.random() * 2000,
           };
-          
+
           setTimeout(flashSequence, delays[intensity]);
         }
       });
@@ -103,33 +103,33 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
   const lightningBolt = (
     <View style={{ alignItems: 'flex-start' }}>
       {/* Вертикальный зигзаг */}
-      <View style={{ 
-        width: 4, 
-        height: 150, 
+      <View style={{
+        width: 4,
+        height: 150,
         backgroundColor: '#FFFF00',
         marginLeft: 0,
       }} />
-      <View style={{ 
-        width: 12, 
-        height: 4, 
+      <View style={{
+        width: 12,
+        height: 4,
         backgroundColor: '#FFFF00',
         marginLeft: 8,
       }} />
-      <View style={{ 
-        width: 4, 
-        height: 20, 
+      <View style={{
+        width: 4,
+        height: 20,
         backgroundColor: '#FFFF00',
         marginLeft: 4,
       }} />
-      <View style={{ 
-        width: 10, 
-        height: 4, 
+      <View style={{
+        width: 10,
+        height: 4,
         backgroundColor: '#FFFF00',
         marginLeft: 0,
       }} />
-      <View style={{ 
-        width: 4, 
-        height: 30, 
+      <View style={{
+        width: 4,
+        height: 30,
         backgroundColor: '#FFFF00',
         marginLeft: 6,
       }} />
@@ -140,8 +140,7 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
     <Animated.View
       style={{
         position: 'absolute',
-        top: 0,
-        left: 0,
+        // УБИРАЕМ left: 0 и top: 0
         transform: [
           { translateX: translateX },
           { translateY: translateY },
@@ -150,15 +149,14 @@ export default function PixelLightning({ intensity = 'medium' }: PixelLightningP
       }}
     >
       {lightningBolt}
-      
+
       {/* Легкое свечение */}
       <Animated.View
         style={{
           position: 'absolute',
-          top: -5,
-          left: -5,
-          right: -5,
-          bottom: -5,
+          // УБИРАЕМ top: -5, left: -5
+          right: -5, // оставляем
+          bottom: -5, // оставляем
           backgroundColor: '#FFFF00',
           borderRadius: 8,
           opacity: opacity.interpolate({

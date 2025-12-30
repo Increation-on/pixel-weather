@@ -19,11 +19,11 @@ export default function PixelSunSparkles() {
       const animateParticle = () => {
         // Сброс
         particle.opacity.setValue(0);
-        
+
         // Новая случайная позиция
         particle.x.setValue(Math.random() * width);
         particle.y.setValue(height * 0.1 + Math.random() * height * 0.3);
-        
+
         // Анимация появления-исчезновения
         Animated.sequence([
           Animated.delay(index * 100),
@@ -43,10 +43,10 @@ export default function PixelSunSparkles() {
           }
         });
       };
-      
+
       setTimeout(animateParticle, index * 300);
     });
-    
+
     return () => {
       particles.forEach(p => {
         p.x.stopAnimation();
@@ -63,8 +63,10 @@ export default function PixelSunSparkles() {
           key={index}
           style={{
             position: 'absolute',
-            left: particle.x,
-            top: particle.y,
+            transform: [
+              { translateX: particle.x },
+              { translateY: particle.y }
+            ],
             width: particle.size,
             height: particle.size,
             backgroundColor: '#FFD700',

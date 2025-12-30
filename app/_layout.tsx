@@ -10,6 +10,8 @@ import { StatusBar } from 'expo-status-bar';
 import { ToastProvider } from '@/src/providers/ToastProvider';
 import { NetworkProvider } from '@/src/providers/NetworkProvider';
 import { queryClient } from '@/src/lib/react-query';
+import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
+import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
 
 // Предотвращаем автоматическое скрытие splash screen
@@ -25,6 +27,33 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  // Регистрация фоновой задачи и инициализация уведомлений
+  useEffect(() => {
+    const initBackgroundServices = async () => {
+      try {
+        console.log('🚀 Запуск фоновых сервисов...');
+        await registerBackgroundTask();
+      } catch (error) {
+        console.log('⚠️ Фоновая задача не запущена:', error);
+      }
+    };
+
+    const initNotifications = async () => {
+      try {
+        console.log('🔔 Инициализация уведомлений...');
+        await WeatherNotificationService.initialize();
+        console.log('✅ Уведомления инициализированы');
+      } catch (error) {
+        console.error('❌ Ошибка инициализации уведомлений:', error);
+      }
+    };
+
+    if (fontsLoaded) {
+      initBackgroundServices();
+      initNotifications();
+    }
+  }, [fontsLoaded]);
 
   if (!fontsLoaded && !fontError) {
     return null;

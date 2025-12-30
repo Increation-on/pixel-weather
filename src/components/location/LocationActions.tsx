@@ -25,7 +25,7 @@ export const LocationActions: React.FC<LocationActionsProps> = ({
       <TouchableOpacity
         onPress={() => onRefresh()}
         disabled={isLoading}
-        className={`p-2 ${isLoading ? 'bg-gray-800' : ''} active:opacity-80`}
+        className={`p-2 mr-2 ${isLoading ? 'bg-gray-800' : ''} active:opacity-80`}
       >
         {isLoading ? (
           // Заменяем ActivityIndicator на PixelLoader с таким же scale
@@ -45,32 +45,5 @@ export const LocationActions: React.FC<LocationActionsProps> = ({
       </TouchableOpacity>
     );
   }
-
-  // Полный вариант
-  return (
-    <TouchableOpacity
-      onPress={() => onRefresh()}
-      disabled={isLoading}
-      className={`flex-row items-center justify-center p-3 rounded-lg mb-4 ${
-        isLoading ? 'bg-gray-800' : 'bg-primary'
-      } active:opacity-80`}
-    >
-      {isLoading ? (
-        <>
-          {/* Заменяем ActivityIndicator на PixelLoader среднего размера */}
-          <PixelLoader size="medium" color="secondary" />
-          <Text className="text-white text-sm font-medium ml-2">
-            {isGeocoding ? 'Определяем город...' : 'Обновляем...'}
-          </Text>
-        </>
-      ) : (
-        <>
-          <Text className="text-lg mr-2">📍</Text>
-          <Text className="text-white text-sm font-medium">
-            {refreshButtonText}
-          </Text>
-        </>
-      )}
-    </TouchableOpacity>
-  );
+  
 };

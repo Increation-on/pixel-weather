@@ -1,7 +1,6 @@
 // Весь файл HomeScreen.tsx с исправлениями
 import { View, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Button } from '@react-navigation/elements';
 
 // Импорты компонентов
 import { CitySearch } from '../../components/search/CitySeacrh';
@@ -11,6 +10,7 @@ import { HomeScreenCachedContent } from './HomeScreenCachedContent';
 import { HomeScreenLoading } from './HomeScreenLoading';
 import { HomeScreenError } from './HomeScreenError';
 import { HomeScreenEmpty } from './HomeScreenEmpty';
+import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 
 // Хуки
 import { useNetwork } from '../../providers/NetworkProvider';
@@ -177,7 +177,10 @@ export const HomeScreen = () => {
   return (
     <ScreenContainer>
       <OfflineBanner />
-      
+
+     
+
+
       <HomeScreenContent
         // Данные
         userCity={userCity}
