@@ -3,7 +3,7 @@ import { View, StatusBar } from 'react-native';
 import { Button } from '@react-navigation/elements';
 
 // Импорты компонентов
-import { CitySearch } from '../../components/search/CitySeacrh';
+import { CitySearch } from '../../components/search/CitySearch';
 import { OfflineBanner } from '../../components/shared/OfflineBanner';
 import { HomeScreenContent } from './HomeScreenContent';
 import { HomeScreenCachedContent } from './HomeScreenCachedContent';

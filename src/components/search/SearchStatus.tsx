@@ -7,6 +7,7 @@ interface SearchStatusProps {
   error: string | null;
   query: string;
   hasResults: boolean;
+  themeClass?: string; // ⭐ ДОБАВЛЯЕМ
 }
 
 export const SearchStatus: React.FC<SearchStatusProps> = ({
@@ -14,19 +15,22 @@ export const SearchStatus: React.FC<SearchStatusProps> = ({
   error,
   query,
   hasResults,
+  themeClass = '',
 }) => {
   if (isLoading) {
     return (
-      <View className="py-8 items-center">
+      <View className={`py-8 items-center ${themeClass}`}>
         <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="text-gray-400 font-pixel mt-4">Ищем города...</Text>
+        <Text className={`text-gray-400 font-pixel mt-4 ${themeClass}`}>
+          Ищем города...
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="py-8 items-center">
+      <View className={`py-8 items-center ${themeClass}`}>
         <Text className="text-red-400 font-pixel">❌ {error}</Text>
       </View>
     );
@@ -34,8 +38,8 @@ export const SearchStatus: React.FC<SearchStatusProps> = ({
 
   if (query.length < 2) {
     return (
-      <View className="py-8 items-center">
-        <Text className="text-gray-400 font-pixel text-xs">
+      <View className={`py-8 items-center ${themeClass}`}>
+        <Text className={`text-gray-400 font-pixel text-xs ${themeClass}`}>
           Введите хотя бы 2 символа для поиска
         </Text>
       </View>
@@ -44,8 +48,8 @@ export const SearchStatus: React.FC<SearchStatusProps> = ({
 
   if (!hasResults && query.length >= 2) {
     return (
-      <View className="py-8 items-center">
-        <Text className="text-gray-400 font-pixel">
+      <View className={`py-8 items-center ${themeClass}`}>
+        <Text className={`text-gray-400 font-pixel ${themeClass}`}>
           Город не найден. Попробуйте другое название.
         </Text>
       </View>

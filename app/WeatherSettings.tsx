@@ -93,9 +93,10 @@ export default function WeatherSettings() {
 
     return (
         <SafeAreaView className="flex-1 bg-background">
+            {/* StatusBar меняется автоматически через ThemeWrapper */}
             <StatusBar
-                barStyle="light-content"
-                backgroundColor="#1a1f2e"
+                barStyle={settings.theme === 'dark' ? 'light-content' : 'dark-content'}
+                backgroundColor={settings.theme === 'dark' ? '#1a1f2e' : '#f8fafc'}
                 translucent={false}
             />
 
@@ -111,7 +112,8 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 12 }}
                             resizeMode="contain"
                         />
-                        <Text className="font-pixel text-white text-3xl">НАСТРОЙКИ</Text>
+                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                        <Text className="font-pixel text-text-primary text-3xl">НАСТРОЙКИ</Text>
                     </View>
                 </View>
 
@@ -122,13 +124,15 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        <Text className="font-pixel text-white text-xl">УВЕДОМЛЕНИЯ</Text>
+                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                        <Text className="font-pixel text-text-primary text-xl">УВЕДОМЛЕНИЯ</Text>
                     </View>
 
                     <View className="bg-card rounded-lg p-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                <Text className="font-pixel text-white text-base mb-1">
+                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                                <Text className="font-pixel text-text-primary text-base mb-1">
                                     УВЕДОМЛЕНИЯ О ПОГОДЕ
                                 </Text>
                                 <Text className="font-pixel text-text-secondary text-xs">
@@ -173,13 +177,15 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        <Text className="font-pixel text-white text-xl">ВНЕШНИЙ ВИД</Text>
+                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                        <Text className="font-pixel text-text-primary text-xl">ВНЕШНИЙ ВИД</Text>
                     </View>
 
                     <View className="bg-card rounded-lg p-4 mb-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                <Text className="font-pixel text-white text-base mb-1">
+                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                                <Text className="font-pixel text-text-primary text-base mb-1">
                                     ТЕМНАЯ ТЕМА
                                 </Text>
                                 <Text className="font-pixel text-text-secondary text-xs">
@@ -198,7 +204,8 @@ export default function WeatherSettings() {
                     <View className="bg-card rounded-lg p-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                <Text className="font-pixel text-white text-base mb-1">
+                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                                <Text className="font-pixel text-text-primary text-base mb-1">
                                     ГРАДУСЫ ЦЕЛЬСИЯ
                                 </Text>
                                 <Text className="font-pixel text-text-secondary text-xs">
@@ -235,7 +242,8 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        <Text className="font-pixel text-white text-xl">ИНФОРМАЦИЯ</Text>
+                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
+                        <Text className="font-pixel text-text-primary text-xl">ИНФОРМАЦИЯ</Text>
                     </View>
 
                     <View className="bg-card/70 rounded-lg p-4 border border-card">

@@ -57,7 +57,7 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   });
 
   return (
-    <View className="bg-card p-5 border border-gray-800 overflow-hidden ">
+    <View className="bg-animation-bg p-5 border border-animation-border overflow-hidden">
       <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none ">
         <PrecipitationAnimation
           weatherType={weatherType}
