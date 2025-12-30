@@ -3,13 +3,179 @@
 @tailwind components;
 @tailwind utilities;
 
-/* В global.css добавьте: */
+/* ========== ОСНОВНЫЕ СТИЛИ ========== */
+
+/* Пиксельные иконки */
 .pixel-icon {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
 .pixel-icon-container {
-  transform: scale(0.8); /* Сжимаем для pixel-эффекта */
+  transform: scale(0.8);
   transform-origin: center;
+}
+
+/* ========== CSS ПЕРЕМЕННЫЕ ДЛЯ ТЕМ ========== */
+
+/* Светлая тема */
+.light-root {
+  /* Основные цвета */
+  --color-background: #f8fafc;
+  --color-card: #ffffff;
+  --color-muted: #f1f5f9;
+  
+  /* Текст */
+  --color-text-primary: #1a202c;
+  --color-text-secondary: #4a5568;
+  --color-secondary: #2d3748; /* Для LocationHeader */
+  
+  /* Границы */
+  --color-border: #e2e8f0;
+  --color-border-gray-800: #e2e8f0;
+  
+  /* Специальные элементы */
+  --color-animation-bg: #718096; /* Карточки с анимациями (80% светлее) */
+  --color-overlay: rgba(0, 0, 0, 0.5); /* Оверлей модалок */
+}
+
+/* Тёмная тема */
+.dark-root {
+  /* Основные цвета */
+  --color-background: #1a1f2e;
+  --color-card: #252b3d;
+  --color-muted: #2d3748;
+  
+  /* Текст */
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #8a8fa3;
+  --color-secondary: #f7fff7; /* Для LocationHeader */
+  
+  /* Границы */
+  --color-border: #374151;
+  --color-border-gray-800: #374151;
+  
+  /* Специальные элементы */
+  --color-animation-bg: #1a1f2e;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* ========== ПРИМЕНЕНИЕ ПЕРЕМЕННЫХ К КЛАССАМ ========== */
+
+/* 1. ФОНЫ */
+.bg-background {
+  background-color: var(--color-background, #1a1f2e) !important;
+}
+
+.bg-card {
+  background-color: var(--color-card, #252b3d) !important;
+}
+
+.bg-muted {
+  background-color: var(--color-muted, #2d3748) !important;
+}
+
+.bg-animation-bg {
+  background-color: var(--color-animation-bg, #1a1f2e) !important;
+}
+
+/* Полупрозрачные фоны */
+.bg-background\/50 {
+  background-color: var(--color-background, #1a1f2e) !important;
+  opacity: 0.5;
+}
+
+.bg-card\/50 {
+  background-color: var(--color-card, #252b3d) !important;
+  opacity: 0.5;
+}
+
+.bg-card\/70 {
+  background-color: var(--color-card, #252b3d) !important;
+  opacity: 0.7;
+}
+
+/* 2. ТЕКСТ */
+.text-text-primary {
+  color: var(--color-text-primary, #e0e0e0) !important;
+}
+
+.text-text-secondary {
+  color: var(--color-text-secondary, #8a8fa3) !important;
+}
+
+.text-secondary {
+  color: var(--color-secondary, #f7fff7) !important;
+}
+
+/* 3. ГРАНИЦЫ */
+.border-border {
+  border-color: var(--color-border, #374151) !important;
+}
+
+.border-gray-800 {
+  border-color: var(--color-border-gray-800, #374151) !important;
+}
+
+.border-animation-border {
+  border-color: #374151 !important;
+}
+
+/* 4. ОСОБЫЕ ЭЛЕМЕНТЫ */
+.bg-black\/70 {
+  background-color: var(--color-overlay, rgba(0, 0, 0, 0.7)) !important;
+}
+
+/* ========== ЯВНЫЕ ПЕРЕОПРЕДЕЛЕНИЯ ДЛЯ СВЕТЛОЙ ТЕМЫ ========== */
+
+/* Карточки с анимациями - границы */
+.light-root .border-animation-border {
+  border-color: #4a5568 !important;
+}
+
+/* Жёсткие цвета в компонентах */
+.light-root .text-white {
+  color: #1a202c !important;
+}
+
+.light-root .text-gray-400 {
+  color: #718096 !important;
+}
+
+.light-root .text-gray-500 {
+  color: #a0aec0 !important;
+}
+
+/* Цвета статусов */
+.light-root .text-yellow-400 {
+  color: #d97706 !important;
+}
+
+.light-root .text-red-400 {
+  color: #dc2626 !important;
+}
+
+.light-root .text-green-400 {
+  color: #059669 !important;
+}
+
+/* Акцентные фоны */
+.light-root .bg-primary\/20 {
+  background-color: rgba(78, 205, 196, 0.2) !important;
+}
+
+/* ========== ДЛЯ МОДАЛКИ ПОИСКА ГОРОДОВ ========== */
+
+/* Если в CityItem есть жёсткие цвета */
+.light-root .text-gray-400 {
+  color: #718096 !important;
+}
+
+.light-root .text-gray-500 {
+  color: #a0aec0 !important;
+}
+
+/* Активность */
+.light-root .activity-indicator {
+  color: #3b82f6 !important;
 }

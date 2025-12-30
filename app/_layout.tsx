@@ -1,4 +1,4 @@
-// app/_layout.tsx - ДОБАВЛЯЕМ SettingsProvider
+// app/_layout.tsx
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
@@ -6,10 +6,10 @@ import { SplashScreen } from 'expo-router';
 import Head from 'expo-router/head';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { ToastProvider } from '@/src/providers/ToastProvider';
 import { NetworkProvider } from '@/src/providers/NetworkProvider';
 import { SettingsProvider } from '@/src/contexts/SettingContext';
+import ThemeWrapper from '@/src/components/ThemeWrapper';
 import { queryClient } from '@/src/lib/react-query';
 import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
@@ -32,9 +32,7 @@ export default function RootLayout() {
     const initServices = async () => {
       if (fontsLoaded) {
         try {
-          // Регистрируем фоновую задачу
           await registerBackgroundTask();
-          // Инициализируем уведомления
           await WeatherNotificationService.initialize();
         } catch (error) {
           console.log('⚠️ Ошибка инициализации сервисов:', error);
@@ -50,7 +48,7 @@ export default function RootLayout() {
   }
 
   return (
-    <SettingsProvider> {/* ← ОБОРАЧИВАЕМ ВСЁ В SettingsProvider */}
+    <SettingsProvider>
       <NetworkProvider>
         <ToastProvider>
           <QueryClientProvider client={queryClient}>
@@ -62,13 +60,14 @@ export default function RootLayout() {
               <title>Pixel Weather</title>
             </Head>
             
-            <StatusBar style="light" />
-            
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            />
+            {/* Используем ThemeWrapper */}
+            <ThemeWrapper>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              />
+            </ThemeWrapper>
           </QueryClientProvider>
         </ToastProvider>
       </NetworkProvider>

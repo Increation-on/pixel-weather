@@ -8,13 +8,13 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Keyboard,
-  Platform,
   Dimensions,
 } from 'react-native';
 import { CitySearchResult } from '../../api/services/city-search.service';
 import { CityItem } from './CityItem';
 import { SearchInput } from './SearchInput';
 import { SearchStatus } from './SearchStatus';
+import { useSettings } from '@/src/contexts/SettingContext'; // ⭐ ДОБАВЛЯЕМ ИМПОРТ
 
 const { height } = Dimensions.get('window');
 
@@ -31,11 +31,15 @@ export const CitySearch: React.FC<CitySearchProps> = ({
   visible = false,
   currentCity,
 }) => {
+  const { settings } = useSettings(); // ⭐ ПОЛУЧАЕМ НАСТРОЙКИ
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CitySearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // ⭐ КЛАСС ТЕМЫ - ДИНАМИЧЕСКИЙ
+  const themeClass = settings.theme === 'light' ? 'light' : '';
 
   // Сброс состояния при закрытии
   useEffect(() => {
@@ -97,33 +101,35 @@ export const CitySearch: React.FC<CitySearchProps> = ({
 
   const renderContent = () => (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-background">
+      {/* ⭐ ДОБАВЛЯЕМ themeClass К ОСНОВНОМУ КОНТЕЙНЕРУ */}
+      <View className={`flex-1 bg-background ${themeClass}`}>
         {/* Шапка с кнопкой закрытия */}
-        <View className="flex-row justify-between items-center p-4 border-b-2 border-gray-800">
-          <Text className="text-text-primary font-pixel text-lg">
+        <View className={`flex-row justify-between items-center p-4 border-b-2 border-gray-800 ${themeClass}`}>
+          <Text className={`text-text-primary font-pixel text-lg ${themeClass}`}>
             ПОИСК ГОРОДА
           </Text>
           <TouchableOpacity 
             onPress={handleClose}
-            className="border-2 border-gray-800 p-2"
+            className={`border-2 border-gray-800 p-2 ${themeClass}`}
           >
-            <Text className="text-text-secondary font-pixel">✕</Text>
+            <Text className={`text-text-secondary font-pixel ${themeClass}`}>✕</Text>
           </TouchableOpacity>
         </View>
 
         {currentCity && (
-          <View className="p-4 bg-card/50">
-            <Text className="text-text-secondary font-pixel text-xs">
+          <View className={`p-4 bg-card/50 ${themeClass}`}>
+            <Text className={`text-text-secondary font-pixel text-xs ${themeClass}`}>
               ТЕКУЩИЙ: <Text className="text-primary font-pixel">{currentCity}</Text>
             </Text>
           </View>
         )}
 
         {/* Основной контент */}
-        <View className="flex-1 p-4">
+        <View className={`flex-1 p-4 ${themeClass}`}>
           <SearchInput
             query={query}
             onChangeText={setQuery}
+            themeClass={themeClass} // ⭐ ПЕРЕДАЁМ В ДОЧЕРНИЕ КОМПОНЕНТЫ
           />
 
           <SearchStatus
@@ -131,6 +137,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({
             error={error}
             query={query}
             hasResults={results.length > 0}
+            themeClass={themeClass} // ⭐ ПЕРЕДАЁМ
           />
 
           {results.length > 0 && (
@@ -140,22 +147,16 @@ export const CitySearch: React.FC<CitySearchProps> = ({
                 <CityItem
                   item={item}
                   onSelect={handleCitySelect}
+                  themeClass={themeClass} // ⭐ ПЕРЕДАЁМ
                 />
               )}
               keyExtractor={(item, index) => 
                 `${item.lat}-${item.lon}-${index}`
               }
-              className="flex-1"
+              className={`flex-1 ${themeClass}`}
               keyboardShouldPersistTaps="handled"
             />
           )}
-
-          {/* <TouchableOpacity
-            className="border-2 border-gray-800 bg-card p-4 items-center mt-4 active:opacity-80"
-            onPress={handleClose}
-          >
-            <Text className="text-text-primary font-pixel">ОТМЕНА</Text>
-          </TouchableOpacity> */}
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -173,11 +174,10 @@ export const CitySearch: React.FC<CitySearchProps> = ({
       statusBarTranslucent={true}
       onRequestClose={handleClose}
     >
-      {/* Полупрозрачный фон */}
-      <View className="flex-1 bg-black/70 justify-end">
-        {/* Модалка снизу - 85% высоты */}
+      {/* ⭐ ДОБАВЛЯЕМ themeClass НА ВСЕ КОНТЕЙНЕРЫ МОДАЛКИ */}
+      <View className={`flex-1 bg-black/70 justify-end ${themeClass}`}>
         <View 
-          className="bg-background rounded-t-2xl border-t-2 border-gray-800"
+          className={`bg-background rounded-t-2xl border-t-2 border-gray-800 ${themeClass}`}
           style={{ height: height * 0.85 }}
         >
           {renderContent()}

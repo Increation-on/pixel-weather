@@ -44,7 +44,7 @@ export const ForecastDayCard: React.FC<ForecastDayCardProps> = ({
     });
 
     return (
-        <View className="bg-card border-2 border-gray-800 p-4 mb-3 overflow-hidden relative">
+        <View className="bg-animation-bg border-2 border-animation-border p-4 mb-3 overflow-hidden relative">
             <View
                 className="absolute top-0 left-0 right-0 h-28"
                 style={{ opacity: 0.4 }}
