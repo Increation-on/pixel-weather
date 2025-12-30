@@ -12,61 +12,51 @@ import { useState, useEffect } from 'react';
 import { Link } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
+import { useSettings } from '@/src/contexts/SettingContext';
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 
 export default function WeatherSettings() {
-    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
-    const [useCelsius, setUseCelsius] = useState(true);
+    const { 
+        settings, 
+        toggleTemperatureUnit, 
+        toggleTheme,
+        toggleNotifications 
+    } = useSettings();
+    
     const [permissionStatus, setPermissionStatus] = useState<string>('undetermined');
 
     useEffect(() => {
-        loadAllSettings();
+        loadPermissionStatus();
     }, []);
 
-    const loadAllSettings = async () => {
+    const loadPermissionStatus = async () => {
         try {
-            // Загружаем настройки уведомлений
-            const settings = await WeatherNotificationService.getSettings();
-            setNotificationsEnabled(settings.enabled);
-            
-            // Загружаем статус разрешений
             const status = await WeatherNotificationService.getPermissionStatus();
             setPermissionStatus(status);
-            
-            console.log('Настройки загружены:', { enabled: settings.enabled, permissionStatus: status });
+            console.log('Статус разрешений загружен:', status);
         } catch (error) {
-            console.error('Ошибка загрузки настроек:', error);
+            console.error('Ошибка загрузки статуса разрешений:', error);
         }
     };
 
-    const toggleNotifications = async (value: boolean) => {
+    const handleToggleNotifications = async (value: boolean) => {
         try {
-            // Если включаем уведомления - проверяем/запрашиваем разрешения
             if (value) {
                 const hasPermission = await WeatherNotificationService.requestPermissions();
-                
                 if (!hasPermission) {
-                    // Если разрешение не дано - выключаем и обновляем статус
                     const status = await WeatherNotificationService.getPermissionStatus();
                     setPermissionStatus(status);
-                    setNotificationsEnabled(false);
                     return;
                 }
-                
-                // Обновляем статус разрешений
                 setPermissionStatus('granted');
             }
             
-            // Сохраняем настройку
-            setNotificationsEnabled(value);
+            await toggleNotifications(value);
             await WeatherNotificationService.saveSettings({ enabled: value });
             
             console.log(`Уведомления ${value ? 'включены' : 'выключены'}`);
         } catch (error) {
             console.error('Ошибка сохранения настроек:', error);
-            // В случае ошибки возвращаем переключатель в исходное состояние
-            setNotificationsEnabled(!value);
         }
     };
 
@@ -76,13 +66,12 @@ export default function WeatherSettings() {
         setPermissionStatus(status);
         
         if (hasPermission) {
-            setNotificationsEnabled(true);
+            await toggleNotifications(true);
             await WeatherNotificationService.saveSettings({ enabled: true });
         }
     };
 
     const getPermissionText = () => {
-        // Проверяем Expo Go
         if (Constants.appOwnership === 'expo') {
             return '📱 EXPO GO';
         }
@@ -94,14 +83,12 @@ export default function WeatherSettings() {
         }
     };
 
-    // Проверяем, нужно ли показывать кнопку запроса разрешений
     const shouldShowRequestButton = () => {
-        // В Expo Go не показываем кнопку запроса
         if (Constants.appOwnership === 'expo') {
             return false;
         }
         
-        return permissionStatus === 'denied' && !notificationsEnabled;
+        return permissionStatus === 'denied' && !settings.notifications;
     };
 
     return (
@@ -117,7 +104,6 @@ export default function WeatherSettings() {
                 contentContainerStyle={{ paddingBottom: 20 }}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Заголовок в пиксельном стиле */}
                 <View className="mb-6 mt-8">
                     <View className="flex-row items-center mb-2">
                         <Image
@@ -129,7 +115,6 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
-                {/* Секция: Уведомления с иконкой */}
                 <View className="mb-8">
                     <View className="flex-row items-center mb-4">
                         <Image
@@ -151,24 +136,22 @@ export default function WeatherSettings() {
                                 </Text>
                             </View>
                             <Switch
-                                value={notificationsEnabled}
-                                onValueChange={toggleNotifications}
+                                value={settings.notifications}
+                                onValueChange={handleToggleNotifications}
                                 trackColor={{ false: '#767577', true: '#4ecdc4' }}
-                                thumbColor={notificationsEnabled ? '#f7fff7' : '#f4f3f4'}
-                                disabled={permissionStatus === 'denied' && !notificationsEnabled}
+                                thumbColor={settings.notifications ? '#f7fff7' : '#f4f3f4'}
+                                disabled={permissionStatus === 'denied' && !settings.notifications}
                             />
                         </View>
 
-                        {/* Статус разрешений */}
                         <View className="mt-3 p-2 bg-background/50 rounded">
                             <Text className="font-pixel text-text-secondary text-xs mb-1">
                                 СТАТУС РАЗРЕШЕНИЙ: {getPermissionText()}
                             </Text>
                             <Text className="font-pixel text-text-secondary text-xs">
-                                УВЕДОМЛЕНИЯ: {notificationsEnabled ? '✅ ВКЛЮЧЕНЫ' : '❌ ВЫКЛЮЧЕНЫ'}
+                                УВЕДОМЛЕНИЯ: {settings.notifications ? '✅ ВКЛЮЧЕНЫ' : '❌ ВЫКЛЮЧЕНЫ'}
                             </Text>
                             
-                            {/* Кнопка запроса разрешений если отклонено (только не в Expo Go) */}
                             {shouldShowRequestButton() && (
                                 <TouchableOpacity 
                                     className="mt-2 p-2 bg-primary/20 rounded border border-primary"
@@ -183,7 +166,6 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
-                {/* Секция: Внешний вид с иконкой */}
                 <View className="mb-8">
                     <View className="flex-row items-center mb-4">
                         <Image
@@ -194,7 +176,6 @@ export default function WeatherSettings() {
                         <Text className="font-pixel text-white text-xl">ВНЕШНИЙ ВИД</Text>
                     </View>
 
-                    {/* Темная тема */}
                     <View className="bg-card rounded-lg p-4 mb-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
@@ -206,15 +187,14 @@ export default function WeatherSettings() {
                                 </Text>
                             </View>
                             <Switch
-                                value={darkMode}
-                                onValueChange={setDarkMode}
+                                value={settings.theme === 'dark'}
+                                onValueChange={toggleTheme}
                                 trackColor={{ false: '#767577', true: '#4ecdc4' }}
-                                thumbColor={darkMode ? '#f7fff7' : '#f4f3f4'}
+                                thumbColor={settings.theme === 'dark' ? '#f7fff7' : '#f4f3f4'}
                             />
                         </View>
                     </View>
 
-                    {/* Единицы измерения */}
                     <View className="bg-card rounded-lg p-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
@@ -226,22 +206,21 @@ export default function WeatherSettings() {
                                 </Text>
                             </View>
                             <Switch
-                                value={useCelsius}
-                                onValueChange={setUseCelsius}
+                                value={settings.temperatureUnit === 'celsius'}
+                                onValueChange={toggleTemperatureUnit}
                                 trackColor={{ false: '#767577', true: '#4ecdc4' }}
-                                thumbColor={useCelsius ? '#f7fff7' : '#f4f3f4'}
+                                thumbColor={settings.temperatureUnit === 'celsius' ? '#f7fff7' : '#f4f3f4'}
                             />
                         </View>
 
-                        {/* Индикатор выбранной единицы */}
                         <View className="mt-3 flex-row space-x-2">
-                            <View className={`flex-1 p-2 rounded ${useCelsius ? 'bg-primary' : 'bg-background/50'}`}>
-                                <Text className={`font-pixel text-center ${useCelsius ? 'text-white' : 'text-text-secondary'} text-xs`}>
+                            <View className={`flex-1 p-2 rounded ${settings.temperatureUnit === 'celsius' ? 'bg-primary' : 'bg-background/50'}`}>
+                                <Text className={`font-pixel text-center ${settings.temperatureUnit === 'celsius' ? 'text-white' : 'text-text-secondary'} text-xs`}>
                                     °C
                                 </Text>
                             </View>
-                            <View className={`flex-1 p-2 rounded ${!useCelsius ? 'bg-primary' : 'bg-background/50'}`}>
-                                <Text className={`font-pixel text-center ${!useCelsius ? 'text-white' : 'text-text-secondary'} text-xs`}>
+                            <View className={`flex-1 p-2 rounded ${settings.temperatureUnit === 'fahrenheit' ? 'bg-primary' : 'bg-background/50'}`}>
+                                <Text className={`font-pixel text-center ${settings.temperatureUnit === 'fahrenheit' ? 'text-white' : 'text-text-secondary'} text-xs`}>
                                     °F
                                 </Text>
                             </View>
@@ -249,7 +228,6 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
-                {/* Секция: Информация с иконкой */}
                 <View className="mb-8">
                     <View className="flex-row items-center mb-4">
                         <Image
@@ -268,21 +246,18 @@ export default function WeatherSettings() {
                             🔔 ПРОВЕРКА: КАЖДЫЕ 30 МИНУТ
                         </Text>
                         
-                        {/* Информация о Expo Go */}
                         {Constants.appOwnership === 'expo' && (
                             <Text className="font-pixel text-yellow-400 text-sm mt-2">
                                 ⚠️ EXPO GO: PUSH-УВЕДОМЛЕНИЯ НЕДОСТУПНЫ
                             </Text>
                         )}
                         
-                        {/* Информация о разрешениях (только не в Expo Go) */}
                         {Constants.appOwnership !== 'expo' && permissionStatus === 'denied' && (
                             <Text className="font-pixel text-red-400 text-sm mt-2">
                                 ⚠️ РАЗРЕШЕНИЕ ОТКЛОНЕНО. ЗАЙДИТЕ В НАСТРОЙКИ УСТРОЙСТВА.
                             </Text>
                         )}
                         
-                        {/* Для Development Build */}
                         {Constants.appOwnership !== 'expo' && permissionStatus === 'granted' && (
                             <Text className="font-pixel text-green-400 text-sm mt-2">
                                 ✅ PUSH-УВЕДОМЛЕНИЯ ДОСТУПНЫ
@@ -291,7 +266,6 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
-                {/* Кнопка назад в пиксельном стиле */}
                 <View className="mt-4 mb-8">
                     <Link href="/" asChild>
                         <TouchableOpacity className="bg-card border-2 border-primary rounded-lg p-4 active:opacity-80">
@@ -302,7 +276,6 @@ export default function WeatherSettings() {
                     </Link>
                 </View>
 
-                {/* Футер с версией */}
                 <View className="mt-12 pt-6 border-t border-card/50">
                     <Text className="font-pixel text-text-secondary text-xs text-center">
                         PIXEL WEATHER v1.0
