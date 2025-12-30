@@ -1,5 +1,7 @@
 // src/components/weather/WeatherCard.tsx
 import { View, Text } from 'react-native';
+import { useSettings } from '@/src/contexts/SettingContext';
+import { formatTemperatureForDisplay } from '@/src/utils/temperature';
 import WeatherPixelIcon, { WeatherType as IconWeatherType } from './WeatherPixelIcon';
 import PrecipitationAnimation from './animations/PrecipitationAnimation';
 
@@ -18,7 +20,8 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   windSpeed,
   humidity,
 }) => {
-  // Функция для цвета текста
+  const { settings } = useSettings();
+  
   const getWeatherColor = (description: string) => {
     const desc = description.toLowerCase();
     if (desc.includes('ясн') || desc.includes('солн')) return 'text-primary';
@@ -28,7 +31,6 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
     return 'text-primary';
   };
 
-  // Функция для типа иконки/анимации
   const getWeatherType = (description: string): IconWeatherType => {
     const desc = description.toLowerCase();
     if (desc.includes('ясн') || desc.includes('солн')) return 'sunny';
@@ -43,9 +45,19 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
   const weatherType = getWeatherType(weatherDescription);
   const textColor = getWeatherColor(weatherDescription);
 
+  // Форматируем температуры
+  const displayTemperature = formatTemperatureForDisplay(temperature, settings.temperatureUnit, {
+    showUnit: true,
+    decimals: 0
+  });
+  
+  const displayFeelsLike = formatTemperatureForDisplay(feelsLike, settings.temperatureUnit, {
+    showUnit: true,
+    decimals: 0
+  });
+
   return (
     <View className="bg-card p-5 border border-gray-800 overflow-hidden ">
-      {/* Погодная анимация на фоне карточки */}
       <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none ">
         <PrecipitationAnimation
           weatherType={weatherType}
@@ -53,36 +65,31 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
         />
       </View>
 
-      {/* Контент карточки (поверх анимации) */}
       <View className="relative z-10 ">
-        {/* Температура - основной акцент */}
         <Text className="text-4xl font-pixel text-secondary text-center mt-3">
-          {Math.round(temperature)}°C
+          {displayTemperature}
         </Text>
-        {/*иконка погоды*/}
+        
         <WeatherPixelIcon
           type={weatherType}
           size={82}
           className="mt-3"
         />
-        {/* Описание погоды */}
+        
         <View className="flex-row items-center justify-center">
           <Text className={`text-2xl font-pixel ${textColor} text-center`}>
             {weatherDescription}
           </Text>
         </View>
 
-        {/* Детали погоды */}
         <View className="flex-row mt-10 mb-4">
-          {/* Левая колонка - Ощущается */}
           <View className="flex-1 items-center">
             <Text className="text-[10px] font-pixel text-text-secondary">Ощущается</Text>
             <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
-              {Math.round(feelsLike)}°C
+              {displayFeelsLike}
             </Text>
           </View>
 
-          {/* Центральная колонка - Ветер */}
           <View className="flex-1 items-center border-l border-r border-gray-700">
             <Text className="text-[10px] font-pixel text-text-secondary">Ветер</Text>
             <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
@@ -90,7 +97,6 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
             </Text>
           </View>
 
-          {/* Правая колонка - Влажность */}
           <View className="flex-1 items-center">
             <Text className="text-[10px] font-pixel text-text-secondary">Влажность</Text>
             <Text className="text-xs font-pixel text-text-primary font-semibold mt-4">
