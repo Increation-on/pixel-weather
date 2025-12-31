@@ -6,7 +6,8 @@ export default {
     orientation: "portrait",
     userInterfaceStyle: "automatic", // Добавьте эту строку
     android: {
-      userInterfaceStyle: "automatic" // Добавьте и эту строку для Android
+      userInterfaceStyle: "automatic",
+      package: "com.learning.pixelweather", // Добавьте и эту строку для Android
     },
     plugins: ["expo-router"],
     extra: {
