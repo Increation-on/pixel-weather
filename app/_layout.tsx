@@ -59,12 +59,14 @@ export default function RootLayout() {
               <meta name="description" content="Пиксельное погодное приложение в ретро-стиле" />
               <title>Pixel Weather</title>
             </Head>
-            
+
             {/* Используем ThemeWrapper */}
             <ThemeWrapper>
               <Stack
                 screenOptions={{
                   headerShown: false,
+                  animation: 'fade',
+                  gestureEnabled: true,
                 }}
               />
             </ThemeWrapper>

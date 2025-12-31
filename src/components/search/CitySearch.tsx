@@ -173,6 +173,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({
       transparent={true}
       statusBarTranslucent={true}
       onRequestClose={handleClose}
+      presentationStyle="overFullScreen"
     >
       {/* ⭐ ДОБАВЛЯЕМ themeClass НА ВСЕ КОНТЕЙНЕРЫ МОДАЛКИ */}
       <View className={`flex-1 bg-black/70 justify-end ${themeClass}`}>
