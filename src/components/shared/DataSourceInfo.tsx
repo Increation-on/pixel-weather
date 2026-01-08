@@ -30,7 +30,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
   return (
     <View className="mt-5 p-3 bg-card rounded-lg">
       <Text className="text-[10px] font-pixel text-text-secondary">Отладка:</Text>
-      <Text className="text-[10px] font-pixel text-text-secondary mt-1">
+      <Text className="text-[10px] font-pixel text-text-secondary mt-2">
         Источник данных: {
           source === 'open-meteo' ? 'Open-Meteo'
             : source === 'weather-api' ? 'WeatherAPI'

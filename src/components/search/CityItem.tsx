@@ -6,7 +6,7 @@ import { CitySearchResult } from '../../api/services/city-search.service';
 interface CityItemProps {
   item: CitySearchResult;
   onSelect: (city: CitySearchResult) => void;
-  themeClass?: string; // ⭐ ДОБАВЛЯЕМ
+  themeClass?: string;
 }
 
 export const CityItem: React.FC<CityItemProps> = ({ item, onSelect, themeClass = '' }) => {
@@ -21,17 +21,22 @@ export const CityItem: React.FC<CityItemProps> = ({ item, onSelect, themeClass =
 
   return (
     <TouchableOpacity
-      className={`border-b border-gray-700 p-4 ${themeClass}`}
+      className={`border-b border-gray-800 p-4 bg-card`}  // Изменил border-gray-700 на border-gray-800
       onPress={() => onSelect(item)}
     >
-      <Text className={`text-white font-pixel text-base mb-1 ${themeClass}`}>
+      {/* ⭐ ИЗМЕНИЛ text-white на text-text-primary ⭐ */}
+      <Text className={`text-text-primary font-pixel text-base mb-1`}>
         {item.city || 'Неизвестный город'}
       </Text>
-      <Text className={`text-gray-400 font-pixel text-sm mb-1 ${themeClass}`}>
+      
+      {/* ⭐ ИЗМЕНИЛ text-gray-400 на text-text-secondary ⭐ */}
+      <Text className={`text-text-secondary font-pixel text-sm mb-1`}>
         {item.country && `${item.country} • `}
         {getTypeText(item.type)}
       </Text>
-      <Text className={`text-gray-500 font-pixel text-xs ${themeClass}`}>
+      
+      {/* ⭐ ИЗМЕНИЛ text-gray-500 на text-text-secondary/80 ⭐ */}
+      <Text className={`text-text-secondary/80 font-pixel text-xs`}>
         {item.lat.toFixed(4)}, {item.lon.toFixed(4)}
       </Text>
     </TouchableOpacity>

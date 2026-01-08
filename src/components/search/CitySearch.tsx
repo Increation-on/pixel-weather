@@ -39,7 +39,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // ⭐ КЛАСС ТЕМЫ - ДИНАМИЧЕСКИЙ
-  const themeClass = settings.theme === 'light' ? 'light' : '';
+  const themeClass = settings.theme === 'light' ? 'light-root' : 'dark-root';
 
   // Сброс состояния при закрытии
   useEffect(() => {
@@ -102,23 +102,23 @@ export const CitySearch: React.FC<CitySearchProps> = ({
   const renderContent = () => (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       {/* ⭐ ДОБАВЛЯЕМ themeClass К ОСНОВНОМУ КОНТЕЙНЕРУ */}
-      <View className={`flex-1 bg-background ${themeClass}`}>
+      <View className={`flex-1 bg-background`}>
         {/* Шапка с кнопкой закрытия */}
-        <View className={`flex-row justify-between items-center p-4 border-b-2 border-gray-800 ${themeClass}`}>
-          <Text className={`text-text-primary font-pixel text-lg ${themeClass}`}>
+        <View className={`flex-row justify-between items-center p-4 border-b-2 border-gray-800`}>
+          <Text className={`text-text-primary font-pixel text-lg`}>
             ПОИСК ГОРОДА
           </Text>
           <TouchableOpacity 
             onPress={handleClose}
             className={`border-2 border-gray-800 p-2 ${themeClass}`}
           >
-            <Text className={`text-text-secondary font-pixel ${themeClass}`}>✕</Text>
+            <Text className={`text-text-secondary font-pixel`}>✕</Text>
           </TouchableOpacity>
         </View>
 
         {currentCity && (
           <View className={`p-4 bg-card/50 ${themeClass}`}>
-            <Text className={`text-text-secondary font-pixel text-xs ${themeClass}`}>
+            <Text className={`text-text-secondary font-pixel text-xs`}>
               ТЕКУЩИЙ: <Text className="text-primary font-pixel">{currentCity}</Text>
             </Text>
           </View>
