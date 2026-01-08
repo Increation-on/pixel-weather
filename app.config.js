@@ -4,14 +4,14 @@ export default {
     name: "Pixel-weather",
     slug: "Pixel-weather",
     orientation: "portrait",
-    userInterfaceStyle: "automatic", // Добавьте эту строку
+    userInterfaceStyle: "automatic", 
     icon: "./assets/icons/favicon/icon.png",
     android: {
       userInterfaceStyle: "automatic",
       package: "com.learning.pixelweather",
       adaptiveIcon: {
-        foregroundImage: "./assets/icons/favicon/icon.png", // та же или другая
-        backgroundColor: "#FFFFFF" // или другой фон
+        foregroundImage: "./assets/icons/favicon/icon.png", 
+        backgroundColor: "#FFFFFF" 
       } 
     },
     plugins: ["expo-router"],

@@ -1,4 +1,3 @@
-// src/components/shared/PixelTextInput.tsx
 import React from 'react';
 import { TextInput, View, Text, Platform } from 'react-native';
 
@@ -10,6 +9,9 @@ interface PixelTextInputProps {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   className?: string;
   placeholderClassName?: string;
+  // ⭐ ДОБАВЛЯЕМ НОВЫЕ ПРОПСЫ
+  textColor?: string;
+  placeholderColor?: string;
 }
 
 export const PixelTextInput: React.FC<PixelTextInputProps> = ({
@@ -20,6 +22,9 @@ export const PixelTextInput: React.FC<PixelTextInputProps> = ({
   autoCapitalize = 'words',
   className = '',
   placeholderClassName = '',
+  // ⭐ НОВЫЕ ПРОПСЫ С ЗНАЧЕНИЯМИ ПО УМОЛЧАНИЮ
+  textColor = '#e0e0e0', // По умолчанию для тёмной темы
+  placeholderColor = '#8a8fa3', // По умолчанию для тёмной темы
 }) => {
   return (
     <View className={`relative ${className}`}>
@@ -32,12 +37,13 @@ export const PixelTextInput: React.FC<PixelTextInputProps> = ({
         style={{
           fontFamily: 'PressStart2P-Regular',
           fontSize: Platform.OS === 'ios' ? 12 : 11,
-          color: '#e0e0e0',
+          // ⭐ ИСПОЛЬЗУЕМ ПЕРЕМЕННУЮ textColor
+          color: textColor,
           height: 24,
           padding: 0,
           margin: 0,
           includeFontPadding: false,
-          opacity: value ? 1 : 0, // Прячем когда пустой (чтобы был виден placeholder)
+          opacity: value ? 1 : 0,
         }}
       />
       
@@ -48,11 +54,13 @@ export const PixelTextInput: React.FC<PixelTextInputProps> = ({
           className="absolute top-0 left-0 right-0"
         >
           <Text
-            className={`text-text-secondary ${placeholderClassName}`}
+            // ⭐ ДОБАВЛЯЕМ ИНЛАЙН СТИЛЬ ДЛЯ ЦВЕТА
             style={{
               fontFamily: 'PressStart2P-Regular',
               fontSize: Platform.OS === 'ios' ? 12 : 11,
               lineHeight: 24,
+              // ⭐ ИСПОЛЬЗУЕМ ПЕРЕМЕННУЮ placeholderColor
+              color: placeholderColor,
             }}
           >
             {placeholder}

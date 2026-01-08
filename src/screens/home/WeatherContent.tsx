@@ -134,7 +134,7 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                 removeClippedSubviews={false}
             />
 
-            <View className="absolute -bottom-0 left-[21px] ">
+            <View className="absolute bottom-2 left-[21px] ">
                 <DataSourceInfo
                     source={dataSource || weatherData?.metadata?.source || 'unknown'}
                     compact={true}
