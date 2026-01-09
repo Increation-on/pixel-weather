@@ -5,6 +5,8 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { WeatherData } from '@/src/types/open-meteo';
 import { WeatherSnapshot } from '@/src/types/notifications';
+import { detectWeatherChanges } from '@/src/utils/weatherDetector';
+import { AppState } from 'react-native'
 
 const STORAGE_KEY = 'last_weather_data';
 const SETTINGS_KEY = 'notification_settings';
@@ -46,7 +48,7 @@ export class WeatherNotificationService {
         lightColor: '#4ecdc4',
       });
     }
-    
+
     // Проверяем, запрашивали ли уже разрешения
     const hasAsked = await AsyncStorage.getItem(PERMISSION_ASKED_KEY);
     if (!hasAsked) {
@@ -59,32 +61,32 @@ export class WeatherNotificationService {
   static async requestPermissions(): Promise<boolean> {
     try {
       console.log('🔔 Запрашиваем разрешения на уведомления...');
-      
+
       // Помечаем, что уже спрашивали
       await AsyncStorage.setItem(PERMISSION_ASKED_KEY, 'true');
-      
+
       // В Expo Go всегда возвращаем true для тестирования
       if (this.isExpoGo()) {
         console.log('📱 Expo Go: имитируем разрешение для тестирования');
         return true;
       }
-      
+
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
-      
+
       if (existingStatus !== 'granted') {
         console.log('🔄 Разрешение не предоставлено, запрашиваем...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
-      
+
       if (finalStatus !== 'granted') {
         console.log('🔕 Разрешение на уведомления не предоставлено');
         // Если разрешение не дано, выключаем уведомления в настройках
         await this.saveSettings({ enabled: false });
         return false;
       }
-      
+
       console.log('✅ Разрешение на уведомления получено');
       return true;
     } catch (error) {
@@ -95,163 +97,134 @@ export class WeatherNotificationService {
   }
 
   // Основной метод: проверяем изменения и отправляем уведомления
+  // В WeatherNotificationService.ts
   static async checkAndNotify(
     oldSnapshot: WeatherSnapshot | null,
     newData: WeatherData
   ): Promise<string[]> {
-    // 1. Получаем настройки
-    const settings = await this.getSettings();
+    console.log('🔔 Проверка уведомлений. AppState:', AppState.currentState);
 
-    // 2. Если уведомления выключены - выходим
-    if (!settings.enabled) {
-      console.log('🔕 Уведомления выключены в настройках');
+    // ВСЕГДА пропускаем если приложение активно
+    if (AppState.currentState === 'active') {
+      console.log('📱 Приложение открыто - пропускаем уведомления');
       return [];
     }
 
-    // 3. Проверяем разрешения (только не в Expo Go)
+    // Приложение в фоне/закрыто - проверяем
+    console.log('🌙 Приложение в фоне - проверяем уведомления');
+
+    // 1. Настройки и разрешения
+    const settings = await this.getSettings();
+    if (!settings.enabled) {
+      console.log('🔕 Уведомления выключены');
+      return [];
+    }
+
     if (!this.isExpoGo()) {
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') {
-        console.log('🔕 Нет разрешений на уведомления');
+        console.log('🔕 Нет разрешений');
         await this.saveSettings({ enabled: false });
         return [];
       }
     }
 
-    // 4. Если нет старых данных - просто сохраняем новые
+    // 2. Если нет старых данных - сохраняем и выходим (самый первый запуск)
     if (!oldSnapshot) {
-      console.log('📭 Первый запуск - нет данных для сравнения');
-      return [];
+      console.log('📭 Самый первый запуск - сохраняем как основу');
+      await this.saveLastWeather(newData);
+      return []; // НЕТ уведомления при самом первом запуске
     }
 
-    // 5. Проверяем изменения
-    const changes = this.detectChanges(oldSnapshot, newData);
+    // 3. Проверяем возраст данных (3 часа максимум)
+    const now = Date.now();
+    const dataAge = now - oldSnapshot.timestamp;
+    const MAX_AGE = 3 * 60 * 60 * 1000; // 3 часа
 
-    // 6. Если есть изменения - показываем уведомление
+    if (dataAge > MAX_AGE) {
+      console.log(`⏰ Данные устарели (${Math.round(dataAge / 3600000)}ч)`);
+      console.log('🔄 Обновляем базу');
+      await this.saveLastWeather(newData);
+      return []; // НЕТ уведомления, просто обновили старые данные
+    }
+
+    // 4. Проверяем реальные изменения погоды
+    const changes = detectWeatherChanges(oldSnapshot, {
+      weatherCode: newData.current.weatherCode,
+      precipitation: newData.current.precipitation || 0,
+      windSpeed: newData.current.windSpeed
+    });
+
+    // 5. ТОЛЬКО если есть изменения - уведомление
     if (changes.length > 0) {
-      console.log('🔔 Обнаружены изменения погоды:');
-      changes.forEach(change => console.log(`  • ${change}`));
-      
-      // Только если не в Expo Go отправляем реальные уведомления
+      console.log('🔔 Обнаружены изменения погоды:', changes);
+
+      // Сохраняем новые данные
+      await this.saveLastWeather(newData);
+
+      // Отправляем уведомление
       if (!this.isExpoGo()) {
         await this.showNotification(changes);
-      } else {
-        console.log('📱 Expo Go: push-уведомления недоступны');
-        console.log('🔧 Используйте Development Build для тестирования');
       }
+
+      return changes;
     } else {
-      console.log('✅ Изменений погоды не обнаружено');
+      console.log('✅ Изменений нет - НЕ сохраняем данные');
+      // НЕ сохраняем! timestamp остается старым
+      return [];
     }
-
-    // 7. Возвращаем изменения для логов
-    return changes;
   }
 
-  // Детектор изменений (публичный для тестов)
-  static detectChanges(oldSnapshot: WeatherSnapshot, newData: WeatherData): string[] {
-    const changes: string[] = [];
-
-    // 1. Температура изменилась?
-    const tempDiff = newData.current.temperature - oldSnapshot.temperature;
-    if (Math.abs(tempDiff) > 0.1) {
-      const direction = tempDiff > 0 ? '↑' : '↓';
-      changes.push(`🌡️ Температура ${direction} на ${Math.abs(tempDiff).toFixed(1)}°C`);
-    }
-
-    // 2. Осадки изменились?
-    const oldPrecip = oldSnapshot.precipitation > 0;
-    const newPrecip = (newData.current.precipitation || 0) > 0;
-
-    if (oldPrecip && !newPrecip) {
-      changes.push('⛅ Осадки прекратились');
-    } else if (!oldPrecip && newPrecip) {
-      changes.push('🌧️ Начались осадки');
-    }
-
-    // 3. Экстремальные условия?
-    const extremeConditions = this.checkExtremeConditions(newData);
-    if (extremeConditions.length > 0) {
-      changes.push(...extremeConditions);
-    }
-
-    return changes;
-  }
-
-  // Проверка экстремальных условий
-  private static checkExtremeConditions(data: WeatherData): string[] {
-    const alerts: string[] = [];
-
-    // Гроза
-    if (data.current.weatherCode >= 95) {
-      alerts.push('⚡ Гроза');
-    }
-
-    // Очень сильный ветер
-    if (data.current.windSpeed > 20) {
-      alerts.push('💨 Сильный ветер');
-    }
-
-    return alerts;
-  }
-
-  // Показать уведомление
+  // Показать уведомление (упрощенное, без иконок)
   private static async showNotification(changes: string[]) {
     if (changes.length === 0) return;
 
-    // Пиксельный стиль для заголовка
-    const title = '🌤️ PIXEL WEATHER';
-    
-    // Пиксельный стиль для тела
-    const body = this.createPixelNotificationBody(changes);
-    
+    const title = 'PIXEL WEATHER';
+    const body = this.createNotificationBody(changes);
+
     console.log('='.repeat(50));
-    console.log('🎮 ПИКСЕЛЬНОЕ PUSH-УВЕДОМЛЕНИЕ');
-    console.log('='.repeat(50));
-    console.log(`📱 Заголовок: ${title}`);
-    console.log(`📝 Текст: ${body}`);
+    console.log('📱 ОТПРАВКА УВЕДОМЛЕНИЯ:');
+    console.log('📌 Заголовок:', title);
+    console.log('📝 Текст:', body);
     console.log('='.repeat(50));
 
-    await Notifications.scheduleNotificationAsync({
+    if (!this.isExpoGo()) {
+      await Notifications.scheduleNotificationAsync({
         content: {
-            title,
-            body,
-            sound: true,
-            // Android стилизация
-            ...(Platform.OS === 'android' && {
-                color: '#4ecdc4', // Акцентный цвет из темы
-                // Можно добавить большую иконку позже
-                // largeIcon: require('@/assets/icons/weather-large.png'),
-            }),
-            // iOS
-            ...(Platform.OS === 'ios' && { 
-                categoryIdentifier: 'weather',
-                // Для iOS можно настроить badge
-            }),
+          title,
+          body,
+          sound: true,
+          ...(Platform.OS === 'android' && {
+            color: '#4ecdc4',
+            priority: Notifications.AndroidNotificationPriority.HIGH,
+          }),
         },
         trigger: null,
-    });
-}
+      });
 
-private static createPixelNotificationBody(changes: string[]): string {
-    if (changes.length === 0) return '';
-    
-    // Если одно изменение - простой формат
-    if (changes.length === 1) {
-        return `📊 ${changes[0]}`;
+      console.log('✅ Уведомление отправлено');
     }
-    
-    // Если несколько - форматируем как список
-    let body = '📊 ИЗМЕНЕНИЯ ПОГОДЫ:\n';
-    changes.forEach(change => {
-        // Добавляем пиксельные маркеры
-        body += `• ${change}\n`;
+  }
+
+  private static createNotificationBody(changes: string[]): string {
+    if (changes.length === 0) return '';
+
+    // Убираем эмодзи для чистого текста
+    const cleanChanges = changes.map(change =>
+      change.replace(/[☀️⛅☁️🌫️🌧️❄️💨💦🧊💥⚡💪🌊]/g, '').trim()
+    );
+
+    if (cleanChanges.length === 1) {
+      return cleanChanges[0];
+    }
+
+    let body = 'Изменения погоды:\n';
+    cleanChanges.forEach(change => {
+      body += `• ${change}\n`;
     });
-    
-    // Добавляем пиксельный footer
-    body += '─'.repeat(20);
-    
-    return body;
-}
+
+    return body.trim();
+  }
 
   // Создать снимок
   private static createSnapshot(data: WeatherData): WeatherSnapshot {
@@ -317,7 +290,7 @@ private static createPixelNotificationBody(changes: string[]): string {
     if (this.isExpoGo()) {
       return 'granted'; // Для Expo Go всегда granted для тестирования
     }
-    
+
     const { status } = await Notifications.getPermissionsAsync();
     return status;
   }
