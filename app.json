@@ -2,6 +2,10 @@
   "expo": {
     "name": "pixel-weather",
     "slug": "pixel-weather",
+    "assetBundlePatterns": [
+      "assets/icons/*",
+      "assets/notifications-icons/*" // ← ДОБАВЬ ЭТУ СТРОКУ!
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/favicon/icon.png", // оставляем для мобильных

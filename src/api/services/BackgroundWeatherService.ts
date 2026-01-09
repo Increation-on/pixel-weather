@@ -31,9 +31,6 @@ TaskManager.defineTask(BACKGROUND_WEATHER_TASK, async () => {
     // 4. Проверяем изменения
     const changes = await WeatherNotificationService.checkAndNotify(oldSnapshot, newData);
     
-    // 5. Сохраняем новые данные
-    await WeatherNotificationService.saveLastWeather(newData);
-    
     console.log(`✅ [Background] Проверка завершена. Изменений: ${changes.length}`);
     
     return BackgroundFetch.BackgroundFetchResult.NewData;

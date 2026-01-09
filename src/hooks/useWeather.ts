@@ -5,16 +5,16 @@ import { WeatherData } from '../types/open-meteo';
 import { WeatherNotificationService } from '../api/services/WeatherNotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSettings } from '../contexts/SettingContext';
-import { formatTemperatureForDisplay } from '../utils/temperature'; // ← Новый импорт
+import { formatTemperatureForDisplay } from '../utils/temperature';
 
 export function useWeather(lat: number, lon: number) {
-  const { settings } = useSettings(); // ← Используем настройки
+  const { settings } = useSettings();
 
   return useQuery<WeatherData, Error>({
-    queryKey: ['weather', lat, lon, settings.temperatureUnit], // ← Добавляем единицы измерения в ключ
+    queryKey: ['weather', lat, lon, settings.temperatureUnit],
     queryFn: async () => {
       console.log('='.repeat(50));
-      console.log('🌤️ ЗАПРАШИВАЕМ ПОГОДУ');
+      console.log('🌤️ ЗАПРАШИВАЕМ ПОГОДЫ');
       console.log('='.repeat(50));
 
       // 1. Получаем новые данные
@@ -45,31 +45,7 @@ export function useWeather(lat: number, lon: number) {
       const oldSnapshot = await WeatherNotificationService.getLastSnapshot();
 
       if (oldSnapshot) {
-        // Форматируем старые данные для сравнения
-        const oldTempDisplay = formatTemperatureForDisplay(
-          oldSnapshot.temperature,
-          settings.temperatureUnit,
-          { showUnit: true, decimals: 1 }
-        );
-        
-        const newTempDisplay = formatTemperatureForDisplay(
-          newData.current.temperature,
-          settings.temperatureUnit,
-          { showUnit: true, decimals: 1 }
-        );
-        
-        const tempDiff = newData.current.temperature - oldSnapshot.temperature;
-        const tempDiffDisplay = formatTemperatureForDisplay(
-          Math.abs(tempDiff),
-          settings.temperatureUnit,
-          { showUnit: true, decimals: 1 }
-        );
-        
-        console.log('📊 СРАВНЕНИЕ С ПРЕДЫДУЩИМИ ДАННЫМИ:');
-        console.log('📉 Старая темп:', oldTempDisplay);
-        console.log('📈 Новая темп:', newTempDisplay);
-        console.log('📊 Разница:', 
-          (tempDiff > 0 ? '+' : '-') + tempDiffDisplay);
+        console.log('📊 Есть старые данные для сравнения');
       } else {
         console.log('📭 Первый запрос - нет старых данных для сравнения');
       }
@@ -81,14 +57,12 @@ export function useWeather(lat: number, lon: number) {
         console.log('🔔 ИТОГО ИЗМЕНЕНИЙ:', changes.length);
       }
 
-      // 5. Сохраняем новые данные для следующей проверки
-      await WeatherNotificationService.saveLastWeather(newData);
-      console.log('💾 Данные погоды сохранены для следующей проверки');
       console.log('='.repeat(50));
-
       return newData;
     },
-    staleTime: 30 * 60 * 1000, // 30 минут (согласуем с фоновой задачей)
+    refetchInterval: 30 * 60 * 1000, // 30 минут
+    refetchIntervalInBackground: true,
+    staleTime: 15 * 60 * 1000, // 15 минут
     retry: 2,
     enabled: !!lat && !!lon,
   });

@@ -1,7 +1,6 @@
 // Весь файл HomeScreen.tsx с исправлениями
 import { View, StatusBar } from 'react-native';
-import { Button } from '@react-navigation/elements';
-
+import { TestNotificationLogic } from '@/src/components/UniversalTestComponent';
 // Импорты компонентов
 import { CitySearch } from '../../components/search/CitySearch';
 import { OfflineBanner } from '../../components/shared/OfflineBanner';
@@ -10,7 +9,6 @@ import { HomeScreenCachedContent } from './HomeScreenCachedContent';
 import { HomeScreenLoading } from './HomeScreenLoading';
 import { HomeScreenError } from './HomeScreenError';
 import { HomeScreenEmpty } from './HomeScreenEmpty';
-import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 
 // Хуки
 import { useNetwork } from '../../providers/NetworkProvider';
@@ -177,10 +175,7 @@ export const HomeScreen = () => {
   return (
     <ScreenContainer>
       <OfflineBanner />
-
-     
-
-
+      <TestNotificationLogic/>
       <HomeScreenContent
         // Данные
         userCity={userCity}
@@ -210,6 +205,8 @@ export const HomeScreen = () => {
         getCurrentCityDisplay={getCurrentCityDisplay}
       />
 
+     
+
       {/* Модалка поиска городов */}
       <CitySearch
         visible={isSearchVisible}
@@ -217,6 +214,7 @@ export const HomeScreen = () => {
         onClose={() => setIsSearchVisible(false)}
         currentCity={getCurrentCityDisplay()}
       />
+       
     </ScreenContainer>
   );
 };
