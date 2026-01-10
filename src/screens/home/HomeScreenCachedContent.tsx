@@ -27,13 +27,6 @@ export const HomeScreenCachedContent: React.FC<HomeScreenCachedContentProps> = (
     return (
         <View style={styles.container}>
             <OfflineBanner />
-
-            <View style={styles.cachedWarning}>
-                <Text style={styles.cachedWarningText}>
-                    ⚠️ Показаны кэшированные данные
-                </Text>
-            </View>
-
             <WeatherContent
                 {...props}
                 weatherData={props.displayData}
@@ -51,14 +44,5 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#ffffff',
-    },
-    cachedWarning: {
-        padding: 10,
-        backgroundColor: '#fef3c7',
-    },
-    cachedWarningText: {
-        textAlign: 'center',
-        color: '#92400e',
-        fontSize: 14,
     },
 });

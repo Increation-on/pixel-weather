@@ -1,6 +1,6 @@
 // Весь файл HomeScreen.tsx с исправлениями
 import { View, StatusBar } from 'react-native';
-import { TestNotificationLogic } from '@/src/components/UniversalTestComponent';
+// import { TestNotificationLogic } from '@/src/components/UniversalTestComponent';
 // Импорты компонентов
 import { CitySearch } from '../../components/search/CitySearch';
 import { OfflineBanner } from '../../components/shared/OfflineBanner';
@@ -88,7 +88,7 @@ export const HomeScreen = () => {
 
   // Обёртка для ВСЕХ состояний
   const ScreenContainer = ({ children }: { children: React.ReactNode }) => (
-    <View className="flex-1 bg-background" style={{ marginTop: statusBarHeight + 10 }}>
+    <View className="flex-1 bg-background" >
       {children}
     </View>
   );
@@ -175,7 +175,7 @@ export const HomeScreen = () => {
   return (
     <ScreenContainer>
       <OfflineBanner />
-      <TestNotificationLogic/>
+      {/* <TestNotificationLogic/> */}
       <HomeScreenContent
         // Данные
         userCity={userCity}

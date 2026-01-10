@@ -45,7 +45,7 @@ export const WeatherSlider: React.FC<WeatherSliderProps> = ({
         ))}
       </ScrollView>
 
-      <View className="flex-row justify-center items-center py-4 border-gray-800 z-30 pointer-events-none border-2">
+      <View className="flex-row justify-center items-center py-4 border-t-2 border-gray-800 z-30 pointer-events-none">
         {children.map((_, index) => (
           <View
             key={index}
