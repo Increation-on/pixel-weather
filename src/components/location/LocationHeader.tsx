@@ -32,7 +32,7 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({
   };
 
   return (
-    <View className="mt-6">
+    <View className="mt-2">
       {/* Заголовок и кнопки в одной строке */}
       <View className="flex-row items-center justify-between">
         <Text 

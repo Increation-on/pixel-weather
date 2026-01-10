@@ -127,7 +127,6 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
                     />
                 }
                 showsVerticalScrollIndicator={false}
-                // Важно для производительности
                 windowSize={5}
                 initialNumToRender={1}
                 maxToRenderPerBatch={5}
