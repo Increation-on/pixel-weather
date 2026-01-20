@@ -48,7 +48,6 @@ export const useHomeScreenData = () => {
     try {
       const cache = await weatherCache.get();
       if (cache) {
-        console.log('💾 Загружен кэш:', cache.data.current.temperature + '°C');
         setCachedWeather(cache.data);
       }
     } catch (error) {
@@ -115,7 +114,6 @@ export const useHomeScreenData = () => {
   // 🎯 Обработчик выбора города
   const handleCitySelect = useCallback(async (city: CitySearchResult) => {
     try {
-      console.log('🎯 Выбран город:', city.city);
       await setManualCity(city);
       setIsSearchVisible(false);
     } catch (error) {

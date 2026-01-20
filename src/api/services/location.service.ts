@@ -25,12 +25,6 @@ export class LocationService {
   static async getCurrentPosition(): Promise<Coordinates> {
     try {
       const location = await Location.getCurrentPositionAsync();
-      
-      console.log('📍 Got coordinates:', {
-        lat: location.coords.latitude,
-        lon: location.coords.longitude,
-        accuracy: location.coords.accuracy
-      });
 
       return {
         latitude: location.coords.latitude,
@@ -92,14 +86,11 @@ export class LocationService {
     // 🔥 Пробуем получить город через Nominatim
     let geocodingResult;
     try {
-      console.log('🗺️ Запрашиваем город по координатам...');
       geocodingResult = await GeocodingService.getCityFromCoords(
         coords.latitude, 
         coords.longitude
       );
-      console.log('🗺️ Результат геокодинга:', geocodingResult);
     } catch (error) {
-      console.log('⚠️ Не удалось определить город, используем приближение');
       const approximateCity = GeocodingService.getCityByApproximation(
         coords.latitude, 
         coords.longitude

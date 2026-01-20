@@ -13,9 +13,6 @@ export function useWeather(lat: number, lon: number) {
   return useQuery<WeatherData, Error>({
     queryKey: ['weather', lat, lon, settings.temperatureUnit],
     queryFn: async () => {
-      console.log('='.repeat(50));
-      console.log('🌤️ ЗАПРАШИВАЕМ ПОГОДЫ');
-      console.log('='.repeat(50));
 
       // 1. Получаем новые данные
       const newData = await fetchWeather(lat, lon);
@@ -26,17 +23,10 @@ export function useWeather(lat: number, lon: number) {
         settings.temperatureUnit,
         { showUnit: true, decimals: 1 }
       );
-      
-      console.log('📅 Время запроса:', new Date().toLocaleTimeString());
-      console.log('📍 Координаты:', lat.toFixed(2), lon.toFixed(2));
-      console.log('🌡️ Температура:', displayTemp);
-      console.log('🌧️ Осадки:', (newData.current.precipitation || 0) + 'мм');
-      console.log('📊 Единицы измерения:', settings.temperatureUnit === 'celsius' ? '°C' : '°F');
 
       // 2. Сохраняем координаты для фоновых задач
       try {
         await AsyncStorage.setItem('user_location', JSON.stringify({ lat, lon }));
-        console.log('💾 Координаты сохранены для фоновых задач');
       } catch (error) {
         console.error('❌ Ошибка сохранения координат:', error);
       }

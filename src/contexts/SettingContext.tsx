@@ -41,7 +41,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const saved = await AsyncStorage.getItem(STORAGE_KEY);
             if (saved) {
                 setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-                console.log('⚙️ Настройки загружены:', JSON.parse(saved));
             }
         } catch (error) {
             console.error('❌ Ошибка загрузки настроек:', error);
@@ -51,7 +50,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const saveSettings = async (newSettings: Settings) => {
         try {
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
-            console.log('💾 Настройки сохранены:', newSettings);
         } catch (error) {
             console.error('❌ Ошибка сохранения настроек:', error);
         }

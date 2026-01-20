@@ -23,8 +23,6 @@ export const useHomeScreenEffects = (homeData: any) => {
   // 🎯 Проверяем сеть при возвращении в приложение
   useEffect(() => {
     if (isAppActive) {
-      console.log('📱 Приложение активно, проверяем сеть...');
-      
       const performNetworkCheck = async () => {
         await checkNetwork();
       };
@@ -36,8 +34,6 @@ export const useHomeScreenEffects = (homeData: any) => {
   // 🎯 Обновление погоды при изменении координат
   useEffect(() => {
     if (coordinates?.lat && coordinates?.lon && !isOffline) {
-      console.log('🔄 Координаты изменились, обновляем погоду...');
-      
       const shouldRefresh = Date.now() - lastRefreshTime > 30000; // 30 секунд минимальный интервал
       
       if (shouldRefresh) {

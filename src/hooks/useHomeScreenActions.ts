@@ -19,7 +19,6 @@ export const useHomeScreenActions = (homeData: any) => {
     if (homeData.refreshing) return;
     
     setRefreshing(true);
-    console.log('🔄 Pull-to-refresh...');
     
     try {
       // Сначала проверяем сеть

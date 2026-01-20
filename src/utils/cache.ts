@@ -18,7 +18,6 @@ export const weatherCache = {
       coordinates: { lat, lon },
     };
     await AsyncStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(cache));
-    console.log('💾 Данные сохранены в кэш');
   },
 
   async get(): Promise<CachedWeatherData | null> {
@@ -31,12 +30,10 @@ export const weatherCache = {
       // Проверяем не устарели ли данные
       const isExpired = Date.now() - cache.timestamp > CACHE_DURATION;
       if (isExpired) {
-        console.log('💾 Кэш устарел');
         await this.clear();
         return null;
       }
 
-      console.log('💾 Данные загружены из кэша');
       return cache;
     } catch (error) {
       console.error('❌ Ошибка загрузки кэша:', error);

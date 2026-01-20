@@ -9,7 +9,7 @@ const STORAGE_KEYS = {
 } as const;
 
 export interface StoredLocation {
-  city: string;
+  city?: string;
   country?: string;
   coordinates: {
     lat: number;
@@ -24,7 +24,6 @@ export class StorageService {
   static async saveSelectedLocation(location: StoredLocation): Promise<void> {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.LAST_LOCATION, JSON.stringify(location));
-      console.log('💾 Сохранен город:', location.city);
     } catch (error) {
       console.error('❌ Ошибка сохранения города:', error);
     }
@@ -36,7 +35,6 @@ export class StorageService {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.LAST_LOCATION);
       if (stored) {
         const location = JSON.parse(stored);
-        console.log('💾 Загружен сохраненный город:', location.city);
         return location;
       }
       return null;
@@ -71,7 +69,6 @@ export class StorageService {
     try {
       await AsyncStorage.removeItem(STORAGE_KEYS.LAST_LOCATION);
       await AsyncStorage.removeItem(STORAGE_KEYS.COORDINATES);
-      console.log('🗑️ Очищена сохраненная локация');
     } catch (error) {
       console.error('❌ Ошибка очистки локации:', error);
     }

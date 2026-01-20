@@ -1,8 +1,6 @@
-// app/_layout.tsx
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
-import { SplashScreen } from 'expo-router';
 import Head from 'expo-router/head';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -15,19 +13,31 @@ import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherServ
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
 
-SplashScreen.preventAutoHideAsync();
+// ⭐ Импортируем правильную библиотеку
+import * as SplashScreenExpo from 'expo-splash-screen';
+
+// Настройка анимации сплеш-скрина
+SplashScreenExpo.setOptions({
+  duration: 1000,
+  fade: true,
+});
+
+// Предотвращаем автоматическое скрытие
+SplashScreenExpo.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     'PressStart2P-Regular': PressStart2P_400Regular,
   });
 
+  // ⭐ ОДИН эффект для скрытия сплеша с логами
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreenExpo.hideAsync()
     }
   }, [fontsLoaded, fontError]);
 
+  // ⭐ ОТДЕЛЬНЫЙ эффект для инициализации сервисов
   useEffect(() => {
     const initServices = async () => {
       if (fontsLoaded) {
@@ -43,6 +53,7 @@ export default function RootLayout() {
     initServices();
   }, [fontsLoaded]);
 
+  // ⭐ Условие рендера
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -60,7 +71,6 @@ export default function RootLayout() {
               <title>Pixel Weather</title>
             </Head>
 
-            {/* Используем ThemeWrapper */}
             <ThemeWrapper>
               <Stack
                 screenOptions={{

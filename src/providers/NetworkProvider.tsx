@@ -18,7 +18,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Основной useEffect для мониторинга сети
   useEffect(() => {
-    console.log('🔧 NetworkProvider: инициализация мониторинга сети');
     
     const handleConnectivityChange = (state: any) => {
       const newIsOffline = state.isConnected === false || 
@@ -26,7 +25,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const newConnectionType = state.type || 'unknown';                    
       
       if (newIsOffline !== isOfflineRef.current || newConnectionType !== connectionType) {
-        console.log(`🌐 NetworkProvider: состояние сети изменилось - ${newIsOffline ? 'offline' : 'online'}`);
         isOfflineRef.current = newIsOffline;
         setIsOffline(newIsOffline);
         setConnectionType(newConnectionType);
@@ -38,15 +36,12 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     NetInfo.fetch().then(handleConnectivityChange);
 
     return () => {
-      console.log('🔧 NetworkProvider: отписка от мониторинга сети');
       unsubscribe();
     };
   }, []);
 
   // Функция для ручной проверки сети
   const checkNetwork = useCallback(async (): Promise<boolean> => {
-    console.log('🔄 NetworkProvider: ручная проверка сети...');
-    
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -60,7 +55,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       clearTimeout(timeoutId);
       
       const isOnline = response.ok;
-      console.log(`🌐 NetworkProvider: ручная проверка - ${isOnline ? 'онлайн' : 'оффлайн'}`);
       
       if (isOnline !== !isOfflineRef.current) {
         isOfflineRef.current = !isOnline;
@@ -69,8 +63,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       return isOnline;
     } catch (error) {
-      console.log('🌐 NetworkProvider: ручная проверка - ошибка сети', error);
-      
       if (!isOfflineRef.current) {
         isOfflineRef.current = true;
         setIsOffline(true);
@@ -92,7 +84,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!isWebEnvironment) return;
     
     const handleOnline = () => {
-      console.log('🌐 Web (event): онлайн событие');
       if (isOfflineRef.current) {
         isOfflineRef.current = false;
         setIsOffline(false);
@@ -100,14 +91,12 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
     
     const handleOffline = () => {
-      console.log('🌐 Web (event): оффлайн событие');
       if (!isOfflineRef.current) {
         isOfflineRef.current = true;
         setIsOffline(true);
       }
     };
     
-    console.log('🔧 NetworkProvider: инициализация web event мониторинга');
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

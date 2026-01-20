@@ -31,10 +31,8 @@ export const HomeScreenLoading: React.FC<HomeScreenLoadingProps> = ({
   isGeocoding,
   isLoadingStorage,
   isLoadingWeather,
-  userCity,
   isOffline,
   displayType,
-  displayData,
   cachedContentProps,
   onRetry,
 }) => {
