@@ -1,21 +1,19 @@
 export default {
   expo: {
     name: "PIXEL-WEATHER-TEST-SPLASH",
-    slug: "pixel-weather",
-    
-    // ⭐ ДОБАВЬТЕ ЭТУ СТРОКУ (любое уникальное имя)
+    slug: "Pixel-weather",
     scheme: "pixel-weather-app",
-    
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     icon: "./assets/icons/favicon/icon.png",
     version: "1.0.0",
     newArchEnabled: true,
     
+    // ⭐ ИКОНКА КАК СПЛЕШ-СКРИН
     splash: {
-      image: "./assets/splashscreen.png",
+      image: "./assets/icons/favicon/icon.png", // ← ТА ЖЕ ИКОНКА
       resizeMode: "contain",
-      backgroundColor: "#000000"
+      backgroundColor: "#1a1f2e" // ← ФОН КАК У ADAPTIVE ICON
     },
     
     assetBundlePatterns: [
@@ -31,7 +29,7 @@ export default {
       userInterfaceStyle: "automatic",
       package: "com.learning.pixelweather",
       adaptiveIcon: {
-        foregroundImage: "./assets/splashscreen.png",
+        foregroundImage: "./assets/icons/favicon/icon.png", // ← ИКОНКА (НЕ СПЛЕШ!)
         backgroundColor: "#1a1f2e"
       }
     },
@@ -41,7 +39,23 @@ export default {
       favicon: "./public/favicon.ico"
     },
     
-    plugins: ["expo-router"],
+    // ⭐ ДОБАВЬТЕ PLUGIN ДЛЯ СПЛЕША
+    plugins: [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/icons/favicon/icon.png",
+          "backgroundColor": "#1a1f2e",
+          "resizeMode": "contain",
+          "imageWidth": 200, // Размер иконки на сплеше
+          "dark": {
+            "image": "./assets/icons/favicon/icon.png",
+            "backgroundColor": "#1a1f2e"
+          }
+        }
+      ]
+    ],
     
     experiments: {
       typedRoutes: true,
