@@ -31,11 +31,17 @@ export default function RootLayout() {
   });
 
   // ⭐ ОДИН эффект для скрытия сплеша с логами
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreenExpo.hideAsync()
-    }
-  }, [fontsLoaded, fontError]);
+// ⭐ ОДИН эффект для скрытия сплеша с минимальным временем
+useEffect(() => {
+  if (fontsLoaded || fontError) {
+    // Искусственная задержка: минимум 1 секунда сплеша
+    const timer = setTimeout(() => {
+      SplashScreenExpo.hideAsync();
+    }, 2000);
+    
+    return () => clearTimeout(timer); // Очистка при размонтировании
+  }
+}, [fontsLoaded, fontError]);
 
   // ⭐ ОТДЕЛЬНЫЙ эффект для инициализации сервисов
   useEffect(() => {
