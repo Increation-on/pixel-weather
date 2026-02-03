@@ -82,7 +82,7 @@ export class WeatherNotificationService {
 
       if (finalStatus !== 'granted') {
         console.log('🔕 Разрешение на уведомления не предоставлено');
-        // Если разрешение не дано, выключаем уведомления в настройках
+        // Если разрешение не дано, выключаем уведомления в настройки
         await this.saveSettings({ enabled: false });
         return false;
       }
@@ -97,46 +97,44 @@ export class WeatherNotificationService {
   }
 
   // Основной метод: проверяем изменения и отправляем уведомления
-  // В WeatherNotificationService.ts
   static async checkAndNotify(
     oldSnapshot: WeatherSnapshot | null,
     newData: WeatherData
   ): Promise<string[]> {
-    console.log('🔔 Проверка уведомлений. AppState:', AppState.currentState);
-
-    // ВСЕГДА пропускаем если приложение активно
-    if (AppState.currentState === 'active') {
-      console.log('📱 Приложение открыто - пропускаем уведомления');
-      return [];
-    }
-
-    // Приложение в фоне/закрыто - проверяем
-    console.log('🌙 Приложение в фоне - проверяем уведомления');
+    console.log('🔔 [checkAndNotify] === НОВАЯ ЛОГИКА ===');
+    console.log('📱 AppState.currentState:', AppState.currentState);
+    
+    // === ВАЖНОЕ ИЗМЕНЕНИЕ 1: УБРАЛИ ПРОВЕРКУ НА ACTIVE ===
+    // Раньше было: if (AppState.currentState === 'active') { return []; }
+    // Теперь: всегда продолжаем, если уведомления включены
+    
+    console.log('✅ Продолжаем проверку (независимо от AppState)');
 
     // 1. Настройки и разрешения
     const settings = await this.getSettings();
     if (!settings.enabled) {
-      console.log('🔕 Уведомления выключены');
+      console.log('🔕 Уведомления выключены в настройках');
       return [];
     }
 
+    // 2. Разрешения (только для не-Expo Go)
     if (!this.isExpoGo()) {
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') {
-        console.log('🔕 Нет разрешений');
+        console.log('🔕 Нет разрешений на уведомления');
         await this.saveSettings({ enabled: false });
         return [];
       }
     }
 
-    // 2. Если нет старых данных - сохраняем и выходим (самый первый запуск)
+    // 3. Если нет старых данных - сохраняем и выходим (самый первый запуск)
     if (!oldSnapshot) {
       console.log('📭 Самый первый запуск - сохраняем как основу');
       await this.saveLastWeather(newData);
       return []; // НЕТ уведомления при самом первом запуске
     }
 
-    // 3. Проверяем возраст данных (3 часа максимум)
+    // 4. Проверяем возраст данных (3 часа максимум)
     const now = Date.now();
     const dataAge = now - oldSnapshot.timestamp;
     const MAX_AGE = 3 * 60 * 60 * 1000; // 3 часа
@@ -148,23 +146,27 @@ export class WeatherNotificationService {
       return []; // НЕТ уведомления, просто обновили старые данные
     }
 
-    // 4. Проверяем реальные изменения погоды
+    // 5. Проверяем реальные изменения погоды
+    console.log('🔍 Сравниваем погоду...');
     const changes = detectWeatherChanges(oldSnapshot, {
       weatherCode: newData.current.weatherCode,
       precipitation: newData.current.precipitation || 0,
       windSpeed: newData.current.windSpeed
     });
 
-    // 5. ТОЛЬКО если есть изменения - уведомление
+    // 6. ТОЛЬКО если есть изменения - уведомление
     if (changes.length > 0) {
-      console.log('🔔 Обнаружены изменения погоды:', changes);
+      console.log('🎉 Обнаружены изменения погоды:', changes);
 
       // Сохраняем новые данные
       await this.saveLastWeather(newData);
 
       // Отправляем уведомление
       if (!this.isExpoGo()) {
+        console.log('📱 Отправляем уведомление...');
         await this.showNotification(changes);
+      } else {
+        console.log('🤖 Expo Go: имитируем отправку уведомления');
       }
 
       return changes;
@@ -242,6 +244,7 @@ export class WeatherNotificationService {
     try {
       const snapshot = this.createSnapshot(data);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      console.log('💾 Данные сохранены:', new Date(snapshot.timestamp).toLocaleTimeString());
     } catch (error) {
       console.error('Ошибка сохранения погоды:', error);
     }

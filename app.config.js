@@ -26,6 +26,10 @@ export default {
     },
     
     android: {
+       "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
+      ],
       userInterfaceStyle: "automatic",
       package: "com.learning.pixelweather",
       adaptiveIcon: {
@@ -42,6 +46,7 @@ export default {
     // ⭐ ДОБАВЬТЕ PLUGIN ДЛЯ СПЛЕША
     plugins: [
       "expo-router",
+      "expo-background-task",
       [
         "expo-splash-screen",
         {
