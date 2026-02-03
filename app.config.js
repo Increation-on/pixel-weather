@@ -45,8 +45,8 @@ export default {
     
     // ⭐ ДОБАВЬТЕ PLUGIN ДЛЯ СПЛЕША
     plugins: [
-      "expo-router",
       "expo-background-task",
+      "expo-router", 
       [
         "expo-splash-screen",
         {
