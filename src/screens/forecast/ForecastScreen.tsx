@@ -4,7 +4,6 @@ import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useWeather } from '@/src/hooks/useWeather';
 import { ForecastDayCard } from './ForecastDayCard';
 import { WeatherType } from '@/src/components/weather/WeatherPixelIcon';
-import BackgroundTaskTester from './BackgroundTaskTester';
 
 export default function ForecastScreen() {
   const { data, isLoading, error } = useWeather(55.7558, 37.6173);
