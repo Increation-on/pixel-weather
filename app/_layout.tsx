@@ -12,6 +12,20 @@ import { queryClient } from '@/src/lib/react-query';
 import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
+import { NativeModules } from 'react-native';
+
+// DEBUG
+console.log('=== NATIVE MODULES DEBUG ===');
+console.log('Все модули:', Object.keys(NativeModules).sort());
+console.log('ExpoBackgroundTask есть?', 'ExpoBackgroundTask' in NativeModules);
+console.log('ExpoBackgroundTask объект:', NativeModules.ExpoBackgroundTask);
+console.log('Методы модуля:', NativeModules.ExpoBackgroundTask ? Object.keys(NativeModules.ExpoBackgroundTask) : 'нет');
+// Проверим другие экспо-модули
+const expoModules = Object.keys(NativeModules).filter(key => key.includes('Expo'));
+console.log('Все Expo модули:', expoModules);
+console.log('TaskManager есть?', 'ExpoTaskManager' in NativeModules);
+import * as TaskManager from 'expo-task-manager';
+console.log('TaskManager работает?', typeof TaskManager.defineTask === 'function');
 
 // ⭐ Импортируем правильную библиотеку
 import * as SplashScreenExpo from 'expo-splash-screen';
@@ -44,20 +58,20 @@ useEffect(() => {
 }, [fontsLoaded, fontError]);
 
   // ⭐ ОТДЕЛЬНЫЙ эффект для инициализации сервисов
-  useEffect(() => {
-    const initServices = async () => {
-      if (fontsLoaded) {
-        try {
-          await registerBackgroundTask();
-          await WeatherNotificationService.initialize();
-        } catch (error) {
-          console.log('⚠️ Ошибка инициализации сервисов:', error);
-        }
-      }
-    };
+  // useEffect(() => {
+  //   const initServices = async () => {
+  //     if (fontsLoaded) {
+  //       try {
+  //         await registerBackgroundTask();
+  //         await WeatherNotificationService.initialize();
+  //       } catch (error) {
+  //         console.log('⚠️ Ошибка инициализации сервисов:', error);
+  //       }
+  //     }
+  //   };
 
-    initServices();
-  }, [fontsLoaded]);
+  //   initServices();
+  // }, [fontsLoaded]);
 
   // ⭐ Условие рендера
   if (!fontsLoaded && !fontError) {

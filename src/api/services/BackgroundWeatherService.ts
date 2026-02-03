@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WeatherNotificationService } from './WeatherNotificationService';
 import { fetchWeather } from './../services/weatherService';
 import { AppState } from 'react-native';
+import { NativeModules } from 'react-native';
+console.log('Все нативные модули:', Object.keys(NativeModules));
+console.log('ExpoBackgroundTask есть?', 'ExpoBackgroundTask' in NativeModules);
 
 // Название задачи
 const BACKGROUND_WEATHER_TASK = 'background-weather-check';
