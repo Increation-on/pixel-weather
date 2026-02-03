@@ -13,6 +13,8 @@ import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherServ
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
 import { NativeModules } from 'react-native';
+import { Button, View } from 'react-native';
+import * as BackgroundTask from 'expo-background-task';
 
 // DEBUG
 console.log('=== NATIVE MODULES DEBUG ===');
@@ -103,6 +105,20 @@ useEffect(() => {
           </QueryClientProvider>
         </ToastProvider>
       </NetworkProvider>
+      <View style={{ position: 'absolute', top: 50, right: 20 }}>
+  <Button 
+    title="Test Background" 
+    onPress={async () => {
+      console.log('Testing background task...');
+      try {
+        const result = await BackgroundTask.triggerTaskWorkerForTestingAsync();
+        console.log('Trigger result:', result);
+      } catch (error) {
+        console.error('Trigger failed:', error);
+      }
+    }}
+  />
+</View>
     </SettingsProvider>
   );
 }
