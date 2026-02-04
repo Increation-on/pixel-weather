@@ -3,16 +3,12 @@ export default {
     name: "PIXEL-WEATHER-TEST-SPLASH",
     slug: "Pixel-weather",
     scheme: "pixel-weather-app",
-    version: "1.0.0",
-    
-    // ⚠️ ВРЕМЕННО отключи новую архитектуру
-    newArchEnabled: false,
-    
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     icon: "./assets/icons/favicon/icon.png",
+    version: "1.0.0",
+    newArchEnabled: true,
     
-    // SPLASH - правильно
     splash: {
       image: "./assets/icons/favicon/icon.png",
       resizeMode: "contain",
@@ -29,12 +25,12 @@ export default {
     },
     
     android: {
-      package: "com.learning.pixelweather",
-      permissions: [
+      "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.WAKE_LOCK"
       ],
       userInterfaceStyle: "automatic",
+      package: "com.learning.pixelweather",
       adaptiveIcon: {
         foregroundImage: "./assets/icons/favicon/icon.png",
         backgroundColor: "#1a1f2e"
@@ -46,33 +42,24 @@ export default {
       favicon: "./public/favicon.ico"
     },
     
-    // ⭐ ВАЖНО: ПРАВИЛЬНЫЕ ПЛАГИНЫ
+    // ⭐ ВАЖНО: Только эти плагины
     plugins: [
       "expo-background-task",
-      "expo-router",
+      "expo-router", 
       [
-        "expo-build-properties",
+        "expo-splash-screen",
         {
-          android: {
-            compileSdkVersion: 34,
-            targetSdkVersion: 34,
-            minSdkVersion: 23,
-            enableProguardInReleaseBuilds: false,
-            extraMavenRepos: [
-              "../../node_modules/@notifee/react-native/android/libs"
-            ]
-          },
-          ios: {
-            deploymentTarget: "15.1"
-          }
+          "image": "./assets/icons/favicon/icon.png",
+          "backgroundColor": "#1a1f2e",
+          "resizeMode": "contain",
+          "imageWidth": 200
         }
       ]
     ],
     
     experiments: {
       typedRoutes: true,
-      // ⚠️ ВРЕМЕННО отключи reactCompiler
-      // reactCompiler: true
+      reactCompiler: true
     },
     
     extra: {
@@ -80,6 +67,6 @@ export default {
       eas: {
         projectId: "5caa2ada-44ca-42a5-b0a7-16fe911ad12e"
       }
-    }
-  }
+    },
+  },
 };
