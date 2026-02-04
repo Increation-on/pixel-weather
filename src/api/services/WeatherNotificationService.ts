@@ -103,11 +103,14 @@ export class WeatherNotificationService {
   ): Promise<string[]> {
     console.log('🔔 [checkAndNotify] === НОВАЯ ЛОГИКА ===');
     console.log('📱 AppState.currentState:', AppState.currentState);
-    
+
     // === ВАЖНОЕ ИЗМЕНЕНИЕ 1: УБРАЛИ ПРОВЕРКУ НА ACTIVE ===
     // Раньше было: if (AppState.currentState === 'active') { return []; }
     // Теперь: всегда продолжаем, если уведомления включены
-    
+    if (AppState.currentState !== 'active') {
+      console.log('📱 Приложение в фоне - проверка уведомлений');
+      // Здесь можно добавить дополнительную логику для фонового режима
+    }
     console.log('✅ Продолжаем проверку (независимо от AppState)');
 
     // 1. Настройки и разрешения

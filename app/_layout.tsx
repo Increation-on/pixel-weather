@@ -12,88 +12,12 @@ import { queryClient } from '@/src/lib/react-query';
 import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
-import { NativeModules } from 'react-native';
-import { Button, View } from 'react-native';
-// import * as BackgroundTask from 'expo-background-task';
-import * as BackgroundTask from './temp-background-task.js'; 
-
-
-
-
-
-
-
-
-
-// DEBUG
-console.log('=== NATIVE MODULES DEBUG ===');
-console.log('Все модули:', Object.keys(NativeModules).sort());
-console.log('ExpoBackgroundTask есть?', 'ExpoBackgroundTask' in NativeModules);
-console.log('ExpoBackgroundTask объект:', NativeModules.ExpoBackgroundTask);
-console.log('Методы модуля:', NativeModules.ExpoBackgroundTask ? Object.keys(NativeModules.ExpoBackgroundTask) : 'нет');
-// Проверим другие экспо-модули
-const expoModules = Object.keys(NativeModules).filter(key => key.includes('Expo'));
-console.log('Все Expo модули:', expoModules);
-console.log('TaskManager есть?', 'ExpoTaskManager' in NativeModules);
-import * as TaskManager from 'expo-task-manager';
-console.log('TaskManager работает?', typeof TaskManager.defineTask === 'function');
-console.log('=== ПОДРОБНЫЙ АНАЛИЗ ===');
-const allModules = NativeModules;
-for (const key in allModules) {
-  console.log(`Модуль "${key}":`, allModules[key]);
-}
-console.log('=== СТРУКТУРА NativeModules ===');
-console.log('NativeModules сам объект:', NativeModules);
-console.log('typeof NativeModules:', typeof NativeModules);
-console.log('Количество ключей:', Object.keys(NativeModules).length);
-// Проверяем конкретно
-console.log('ExpoBackgroundTask через точку:', NativeModules.ExpoBackgroundTask);
-console.log('ExpoTaskManager через точку:', NativeModules.ExpoTaskManager);
-console.log('=== НЕПЕРЕЧИСЛИМЫЕ СВОЙСТВА ===');
-console.log('=== ПРОТОТИП NativeModules ===');
-console.log('NativeModules.__proto__:', NativeModules.__proto__);
-console.log('NativeModules.constructor:', NativeModules.constructor);
-console.log('NativeModules.constructor.name:', NativeModules.constructor?.name);
-console.log('=== МОДУЛИ КОТОРЫЕ НЕ NULL ===');
-for (const key in NativeModules) {
-  if (NativeModules[key] !== null) {
-    console.log(`${key}:`, NativeModules[key]);
-  }
-}
-// Или попробуем получить все свойства другим способом
-console.log('=== ВСЕ СВОЙСТВА (включая скрытые) ===');
-const allProps = [];
-for (let i = 0; i < 100; i++) {
-  try {
-    const prop = Object.getOwnPropertyNames(NativeModules)[i];
-    if (prop) {
-      allProps.push(prop);
-      console.log(`${prop}:`, NativeModules[prop]);
-    }
-  } catch (e) {
-    break;
-  }
-}
-console.log('Найдено свойств:', allProps.length);
-
-
-
-
-
-
-
-
-
-// ⭐ Импортируем правильную библиотеку
 import * as SplashScreenExpo from 'expo-splash-screen';
+import * as TaskManager from 'expo-task-manager';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as BackgroundTask from 'expo-background-task';
+import { NativeModules } from 'react-native';
 
-// Настройка анимации сплеш-скрина
-SplashScreenExpo.setOptions({
-  duration: 1000,
-  fade: true,
-});
-
-// Предотвращаем автоматическое скрытие
 SplashScreenExpo.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -101,36 +25,57 @@ export default function RootLayout() {
     'PressStart2P-Regular': PressStart2P_400Regular,
   });
 
-  // ⭐ ОДИН эффект для скрытия сплеша с логами
-// ⭐ ОДИН эффект для скрытия сплеша с минимальным временем
-useEffect(() => {
-  if (fontsLoaded || fontError) {
-    // Искусственная задержка: минимум 1 секунда сплеша
-    const timer = setTimeout(() => {
-      SplashScreenExpo.hideAsync();
-    }, 2000);
+  // ⭐ ТОЛЬКО ОДИН useEffect
+  useEffect(() => {
+    const initApp = async () => {
+      if (fontsLoaded || fontError) {
+        console.log('🟢 Шрифты загружены, начинаем инициализацию...');
+        
+        try {
+          // 1. Проверяем NativeModules
+          console.log('📱 NativeModules:', Object.keys(NativeModules));
+          console.log('📱 Всего модулей:', Object.keys(NativeModules).length);
+          
+          // 2. Проверяем TaskManager
+          console.log('📋 TaskManager доступен:', !!TaskManager);
+          
+          // 3. Проверяем BackgroundFetch
+          console.log('🔄 BackgroundFetch доступен:', !!BackgroundFetch);
+          if (BackgroundFetch && BackgroundFetch.getStatusAsync) {
+            try {
+              const status = await BackgroundFetch.getStatusAsync();
+              console.log(`📱 BackgroundFetch статус: ${status}`);
+            } catch (e) {
+              console.log('📱 Ошибка получения статуса BackgroundFetch:', e);
+            }
+          }
+          
+          // 4. Проверяем BackgroundTask
+          console.log('🎯 BackgroundTask доступен:', !!BackgroundTask);
+          
+          // 5. Инициализируем сервисы
+          console.log('🔄 Инициализируем BackgroundFetch задачу...');
+          await registerBackgroundTask();
+          
+          console.log('🔔 Инициализируем уведомления...');
+          await WeatherNotificationService.initialize();
+          
+          console.log('✅ Все сервисы инициализированы');
+          
+        } catch (error: any) {
+          console.log('🔴 Ошибка инициализации:', error?.message);
+        }
+        
+        // Скрываем сплеш
+        setTimeout(() => {
+          SplashScreenExpo.hideAsync();
+        }, 1000);
+      }
+    };
     
-    return () => clearTimeout(timer); // Очистка при размонтировании
-  }
-}, [fontsLoaded, fontError]);
+    initApp();
+  }, [fontsLoaded, fontError]);
 
-  // ⭐ ОТДЕЛЬНЫЙ эффект для инициализации сервисов
-  // useEffect(() => {
-  //   const initServices = async () => {
-  //     if (fontsLoaded) {
-  //       try {
-  //         await registerBackgroundTask();
-  //         await WeatherNotificationService.initialize();
-  //       } catch (error) {
-  //         console.log('⚠️ Ошибка инициализации сервисов:', error);
-  //       }
-  //     }
-  //   };
-
-  //   initServices();
-  // }, [fontsLoaded]);
-
-  // ⭐ Условие рендера
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -160,20 +105,6 @@ useEffect(() => {
           </QueryClientProvider>
         </ToastProvider>
       </NetworkProvider>
-      <View style={{ position: 'absolute', top: 50, right: 20 }}>
-  <Button 
-    title="Test Background" 
-    onPress={async () => {
-      console.log('Testing background task...');
-      try {
-        // const result = await BackgroundTask.triggerTaskWorkerForTestingAsync();
-        // console.log('Trigger result:', result);
-      } catch (error) {
-        console.error('Trigger failed:', error);
-      }
-    }}
-  />
-</View>
     </SettingsProvider>
   );
 }

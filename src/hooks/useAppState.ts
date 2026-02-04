@@ -7,7 +7,7 @@ export const useAppState = () => {
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      console.log('📱 Состояние приложения:', nextAppState);
+      console.log('📱 Состояние приложения:', nextAppState, new Date().toLocaleTimeString());
       setAppState(nextAppState);
     });
 
