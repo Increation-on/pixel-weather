@@ -3,17 +3,20 @@ export default {
     name: "PIXEL-WEATHER-TEST-SPLASH",
     slug: "Pixel-weather",
     scheme: "pixel-weather-app",
+    version: "1.0.0",
+    
+    // ⚠️ ВРЕМЕННО отключи новую архитектуру
+    newArchEnabled: false,
+    
     orientation: "portrait",
     userInterfaceStyle: "automatic",
     icon: "./assets/icons/favicon/icon.png",
-    version: "1.0.0",
-    newArchEnabled: true,
     
-    // ⭐ ИКОНКА КАК СПЛЕШ-СКРИН
+    // SPLASH - правильно
     splash: {
-      image: "./assets/icons/favicon/icon.png", // ← ТА ЖЕ ИКОНКА
+      image: "./assets/icons/favicon/icon.png",
       resizeMode: "contain",
-      backgroundColor: "#1a1f2e" // ← ФОН КАК У ADAPTIVE ICON
+      backgroundColor: "#1a1f2e"
     },
     
     assetBundlePatterns: [
@@ -26,14 +29,14 @@ export default {
     },
     
     android: {
-       "permissions": [
+      package: "com.learning.pixelweather",
+      permissions: [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.WAKE_LOCK"
       ],
       userInterfaceStyle: "automatic",
-      package: "com.learning.pixelweather",
       adaptiveIcon: {
-        foregroundImage: "./assets/icons/favicon/icon.png", // ← ИКОНКА (НЕ СПЛЕШ!)
+        foregroundImage: "./assets/icons/favicon/icon.png",
         backgroundColor: "#1a1f2e"
       }
     },
@@ -43,20 +46,24 @@ export default {
       favicon: "./public/favicon.ico"
     },
     
-    // ⭐ ДОБАВЬТЕ PLUGIN ДЛЯ СПЛЕША
+    // ⭐ ВАЖНО: ПРАВИЛЬНЫЕ ПЛАГИНЫ
     plugins: [
       "expo-background-task",
-      "expo-router", 
+      "expo-router",
       [
-        "expo-splash-screen",
+        "expo-build-properties",
         {
-          "image": "./assets/icons/favicon/icon.png",
-          "backgroundColor": "#1a1f2e",
-          "resizeMode": "contain",
-          "imageWidth": 200, // Размер иконки на сплеше
-          "dark": {
-            "image": "./assets/icons/favicon/icon.png",
-            "backgroundColor": "#1a1f2e"
+          android: {
+            compileSdkVersion: 34,
+            targetSdkVersion: 34,
+            minSdkVersion: 23,
+            enableProguardInReleaseBuilds: false,
+            extraMavenRepos: [
+              "../../node_modules/@notifee/react-native/android/libs"
+            ]
+          },
+          ios: {
+            deploymentTarget: "13.0"
           }
         }
       ]
@@ -64,7 +71,8 @@ export default {
     
     experiments: {
       typedRoutes: true,
-      reactCompiler: true
+      // ⚠️ ВРЕМЕННО отключи reactCompiler
+      // reactCompiler: true
     },
     
     extra: {
@@ -72,6 +80,6 @@ export default {
       eas: {
         projectId: "5caa2ada-44ca-42a5-b0a7-16fe911ad12e"
       }
-    },
-  },
+    }
+  }
 };
