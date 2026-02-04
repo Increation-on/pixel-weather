@@ -63,7 +63,7 @@ export default {
             ]
           },
           ios: {
-            deploymentTarget: "13.0"
+            deploymentTarget: "15.1"
           }
         }
       ]
