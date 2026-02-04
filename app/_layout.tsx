@@ -1,3 +1,4 @@
+// app/_layout.tsx
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
@@ -13,10 +14,8 @@ import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherServ
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 import '../global.css';
 import * as SplashScreenExpo from 'expo-splash-screen';
-import * as TaskManager from 'expo-task-manager';
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as BackgroundTask from 'expo-background-task';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 SplashScreenExpo.preventAutoHideAsync();
 
@@ -25,56 +24,42 @@ export default function RootLayout() {
     'PressStart2P-Regular': PressStart2P_400Regular,
   });
 
-  // ⭐ ТОЛЬКО ОДИН useEffect
-  useEffect(() => {
-    const initApp = async () => {
-      if (fontsLoaded || fontError) {
-        console.log('🟢 Шрифты загружены, начинаем инициализацию...');
-        
-        try {
-          // 1. Проверяем NativeModules
-          console.log('📱 NativeModules:', Object.keys(NativeModules));
-          console.log('📱 Всего модулей:', Object.keys(NativeModules).length);
-          
-          // 2. Проверяем TaskManager
-          console.log('📋 TaskManager доступен:', !!TaskManager);
-          
-          // 3. Проверяем BackgroundFetch
-          console.log('🔄 BackgroundFetch доступен:', !!BackgroundFetch);
-          if (BackgroundFetch && BackgroundFetch.getStatusAsync) {
-            try {
-              const status = await BackgroundFetch.getStatusAsync();
-              console.log(`📱 BackgroundFetch статус: ${status}`);
-            } catch (e) {
-              console.log('📱 Ошибка получения статуса BackgroundFetch:', e);
-            }
-          }
-          
-          // 4. Проверяем BackgroundTask
-          console.log('🎯 BackgroundTask доступен:', !!BackgroundTask);
-          
-          // 5. Инициализируем сервисы
-          console.log('🔄 Инициализируем BackgroundFetch задачу...');
-          await registerBackgroundTask();
-          
-          console.log('🔔 Инициализируем уведомления...');
-          await WeatherNotificationService.initialize();
-          
-          console.log('✅ Все сервисы инициализированы');
-          
-        } catch (error: any) {
-          console.log('🔴 Ошибка инициализации:', error?.message);
-        }
-        
-        // Скрываем сплеш
-        setTimeout(() => {
-          SplashScreenExpo.hideAsync();
-        }, 1000);
-      }
-    };
+  // Добавь в useEffect в _layout.tsx
+useEffect(() => {
+  if (fontsLoaded || fontError) {
+    console.log('🔍 ТОЧНАЯ ПРОВЕРКА ОКРУЖЕНИЯ:');
     
-    initApp();
-  }, [fontsLoaded, fontError]);
+    // 1. NativeModules
+    const allModules = Object.keys(NativeModules);
+    console.log('📱 Всего NativeModules:', allModules.length);
+    
+    // 2. Выводим ВСЕ модули
+    allModules.forEach((module, index) => {
+      console.log(`  ${index + 1}. ${module}`);
+    });
+    
+    // 3. Проверяем PlatformConstants
+    if (NativeModules.PlatformConstants) {
+      console.log('📦 PlatformConstants:', NativeModules.PlatformConstants);
+      console.log('📦 Имя приложения:', NativeModules.PlatformConstants.appName);
+      console.log('📦 Версия реакта:', NativeModules.PlatformConstants.reactNativeVersion);
+    }
+    
+    // 4. Проверяем I18nManager (должен быть в Development Build)
+    if (NativeModules.I18nManager) {
+      console.log('🌍 I18nManager найден → Development Build');
+    } else {
+      console.log('🌍 I18nManager не найден → возможно Expo Go');
+    }
+    
+    // 5. Проверяем UIManager (должен быть)
+    if (NativeModules.UIManager) {
+      console.log('🎨 UIManager найден → Development Build');
+    } else {
+      console.log('🎨 UIManager не найден → Expo Go');
+    }
+  }
+}, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
     return null;
