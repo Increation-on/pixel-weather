@@ -16,4 +16,9 @@ config.resolver.sourceExts = [
   'd.ts', // для деклараций
 ];
 
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+  '@notifee/react-native': require.resolve('@notifee/react-native'),
+};
+
 module.exports = withNativeWind(config, { input: './global.css' });

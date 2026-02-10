@@ -13,4 +13,6 @@ export interface WeatherSnapshot {
   precipitation: number;
   windSpeed: number;
   weatherCode: number;
+  lat: number;    // ← добавляем координаты
+  lon: number;
 }

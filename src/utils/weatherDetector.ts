@@ -108,8 +108,8 @@ export function getWeatherDescription(weatherCode: number): string {
  * Детектирует значимые изменения погоды
  */
 export function detectWeatherChanges(
-  oldSnapshot: { weatherCode: number; precipitation: number; windSpeed: number } | null,
-  newData: { weatherCode: number; precipitation: number; windSpeed: number }
+  oldSnapshot: { weatherCode: number; precipitation: number; windSpeed: number,  temperature?: number } | null,
+  newData: { weatherCode: number; precipitation: number; windSpeed: number,  temperature?: number }
 ): string[] {
   const changes: string[] = [];
   
@@ -120,6 +120,15 @@ export function detectWeatherChanges(
   console.log('🔍 ДЕТЕКТИРОВАНИЕ ИЗМЕНЕНИЙ ПОГОДЫ:');
   console.log('  Старое:', getWeatherDescription(oldSnapshot.weatherCode));
   console.log('  Новое:', getWeatherDescription(newData.weatherCode));
+
+   // 👇 ДОБАВЬТЕ ПРОВЕРКУ ТЕМПЕРАТУРЫ
+  if (oldSnapshot.temperature !== undefined && newData.temperature !== undefined) {
+    const tempDiff = Math.abs(newData.temperature - oldSnapshot.temperature);
+    if (tempDiff >= 3) { // Порог 3°C
+      const direction = newData.temperature > oldSnapshot.temperature ? '↑' : '↓';
+      changes.push(`Температура ${direction} на ${tempDiff.toFixed(1)}°C`);
+    }
+  }
 
   // 1. ИЗМЕНЕНИЕ КАТЕГОРИИ ПОГОДЫ (самое важное!)
   const oldCategory = getWeatherCategory(oldSnapshot.weatherCode);
@@ -193,6 +202,7 @@ export function detectWeatherChanges(
     changes.push(`Сильный ${type} 🌊`);
     console.log(`✅ Сильные осадки: ${type}`);
   }
+  
 
   console.log('🔔 Итог изменений:', changes.length > 0 ? changes : 'нет изменений');
   return changes;

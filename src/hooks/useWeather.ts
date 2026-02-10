@@ -5,7 +5,6 @@ import { WeatherData } from '../types/open-meteo';
 import { WeatherNotificationService } from '../api/services/WeatherNotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSettings } from '../contexts/SettingContext';
-import { formatTemperatureForDisplay } from '../utils/temperature';
 
 export function useWeather(lat: number, lon: number) {
   const { settings } = useSettings();
@@ -13,16 +12,13 @@ export function useWeather(lat: number, lon: number) {
   return useQuery<WeatherData, Error>({
     queryKey: ['weather', lat, lon, settings.temperatureUnit],
     queryFn: async () => {
+      console.log('🔄 useWeather: ЗАПРОС погоды для', lat.toFixed(4), lon.toFixed(4));
 
       // 1. Получаем новые данные
       const newData = await fetchWeather(lat, lon);
-      
-      // Форматируем температуру для отображения
-      const displayTemp = formatTemperatureForDisplay(
-        newData.current.temperature, 
-        settings.temperatureUnit,
-        { showUnit: true, decimals: 1 }
-      );
+      console.log('🌤️ Новые данные получены');
+      console.log('🌡️ Температура:', newData.current.temperature);
+      console.log('☁️  Погода:', newData.current.weatherCode);
 
       // 2. Сохраняем координаты для фоновых задач
       try {
@@ -31,17 +27,26 @@ export function useWeather(lat: number, lon: number) {
         console.error('❌ Ошибка сохранения координат:', error);
       }
 
-      // 3. Получаем старый снимок
-      const oldSnapshot = await WeatherNotificationService.getLastSnapshot();
+      // 3. Получаем старый снимок ДЛЯ ЭТОЙ ЛОКАЦИИ
+      console.log('📂 Запрашиваю oldSnapshot для этой локации...');
+      const oldSnapshot = await WeatherNotificationService.getLastSnapshot(lat, lon);
 
       if (oldSnapshot) {
-        console.log('📊 Есть старые данные для сравнения');
+        console.log('📊 Старые данные ЕСТЬ для сравнения');
       } else {
-        console.log('📭 Первый запрос - нет старых данных для сравнения');
+        console.log('📭 Старых данных НЕТ (первый запуск для этой локации)');
       }
 
-      // 4. Проверяем и уведомляем
-      const changes = await WeatherNotificationService.checkAndNotify(oldSnapshot, newData);
+      // 4. Проверяем и уведомляем (передаем координаты!)
+      console.log('🔔 Вызываю checkAndNotify...');
+      const changes = await WeatherNotificationService.checkAndNotify(
+        lat, 
+        lon, 
+        oldSnapshot, 
+        newData
+      );
+      
+      console.log('🎯 checkAndNotify вернул', changes.length, 'изменений');
 
       if (changes.length > 0) {
         console.log('🔔 ИТОГО ИЗМЕНЕНИЙ:', changes.length);
