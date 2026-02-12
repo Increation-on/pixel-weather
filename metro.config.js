@@ -1,24 +1,35 @@
+// metro.config.js - Исправленная версия для Windows
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require('nativewind/metro');
 
-// Получаем дефолтную конфигурацию
-const config = getDefaultConfig(__dirname);
+// 1. Получаем дефолтную конфигурацию
+const config = getDefaultConfig(__dirname, {
+  // Это важно для Windows
+  isCSSEnabled: true,
+});
 
-// Добавляем поддержку .ico файлов
+// 2. Добавляем поддержку .ico файлов
 config.resolver.assetExts = [
   ...config.resolver.assetExts,
-  'ico', // ← ДОБАВЛЯЕМ ЭТО
+  'ico',
 ];
 
-// Настройка для TypeScript
+// 3. Настройка для TypeScript
 config.resolver.sourceExts = [
   ...config.resolver.sourceExts,
-  'd.ts', // для деклараций
+  'd.ts',
 ];
 
+
+// 4. Настройка для алиасов (если используете @/src)
+const path = require('path');
 config.resolver.extraNodeModules = {
-  ...config.resolver.extraNodeModules,
-  '@notifee/react-native': require.resolve('@notifee/react-native'),
+  '@': path.resolve(__dirname, 'src'),
 };
 
-module.exports = withNativeWind(config, { input: './global.css' });
+// 5. Экспортируем с NativeWind
+module.exports = withNativeWind(config, { 
+  input: './global.css',
+  // Для Windows может потребоваться явно указать проект
+  projectRoot: __dirname 
+});

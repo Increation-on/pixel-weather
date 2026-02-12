@@ -19,5 +19,5 @@
     "global.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/test-firebase.tsx.bak"  ]
 }

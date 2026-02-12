@@ -16,13 +16,13 @@ import { useSettings } from '@/src/contexts/SettingContext';
 import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 
 export default function WeatherSettings() {
-    const { 
-        settings, 
-        toggleTemperatureUnit, 
+    const {
+        settings,
+        toggleTemperatureUnit,
         toggleTheme,
-        toggleNotifications 
+        toggleNotifications
     } = useSettings();
-    
+
     const [permissionStatus, setPermissionStatus] = useState<string>('undetermined');
 
     useEffect(() => {
@@ -40,34 +40,40 @@ export default function WeatherSettings() {
     };
 
     const handleToggleNotifications = async (value: boolean) => {
-        try {
-            if (value) {
-                const hasPermission = await WeatherNotificationService.requestPermissions();
-                if (!hasPermission) {
-                    const status = await WeatherNotificationService.getPermissionStatus();
-                    setPermissionStatus(status);
-                    return;
-                }
-                setPermissionStatus('granted');
-            }
-            
-            await toggleNotifications(value);
-            await WeatherNotificationService.saveSettings({ enabled: value });
-            
-            console.log(`Уведомления ${value ? 'включены' : 'выключены'}`);
-        } catch (error) {
-            console.error('Ошибка сохранения настроек:', error);
-        }
-    };
+  try {
+    if (value) {
+      // Сначала запрашиваем разрешения
+      const hasPermission = await WeatherNotificationService.requestPermissions();
+      if (!hasPermission) {
+        const status = await WeatherNotificationService.getPermissionStatus();
+        setPermissionStatus(status);
+        // Не вызываем toggleNotifications - оставляем выключенным
+        return;
+      }
+      setPermissionStatus('granted');
+    }
+    
+    // Только если разрешение есть (или выключаем) - меняем настройки
+    await toggleNotifications(value);
+    
+    console.log(`Уведомления ${value ? 'включены' : 'выключены'}`);
+    
+    // Обновляем статус
+    await loadPermissionStatus();
+    
+  } catch (error) {
+    console.error('Ошибка переключения уведомлений:', error);
+  }
+};
 
     const handleRequestPermission = async () => {
         const hasPermission = await WeatherNotificationService.requestPermissions();
         const status = await WeatherNotificationService.getPermissionStatus();
         setPermissionStatus(status);
-        
+
         if (hasPermission) {
+            // ✅ ТОЛЬКО через SettingContext
             await toggleNotifications(true);
-            await WeatherNotificationService.saveSettings({ enabled: true });
         }
     };
 
@@ -75,7 +81,7 @@ export default function WeatherSettings() {
         if (Constants.appOwnership === 'expo') {
             return '📱 EXPO GO';
         }
-        
+
         switch (permissionStatus) {
             case 'granted': return '✅ РАЗРЕШЕНО';
             case 'denied': return '❌ ОТКЛОНЕНО';
@@ -87,7 +93,7 @@ export default function WeatherSettings() {
         if (Constants.appOwnership === 'expo') {
             return false;
         }
-        
+
         return permissionStatus === 'denied' && !settings.notifications;
     };
 
@@ -155,9 +161,9 @@ export default function WeatherSettings() {
                             <Text className="font-pixel text-text-secondary text-xs">
                                 УВЕДОМЛЕНИЯ: {settings.notifications ? '✅ ВКЛЮЧЕНЫ' : '❌ ВЫКЛЮЧЕНЫ'}
                             </Text>
-                            
+
                             {shouldShowRequestButton() && (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     className="mt-2 p-2 bg-primary/20 rounded border border-primary"
                                     onPress={handleRequestPermission}
                                 >
@@ -253,19 +259,19 @@ export default function WeatherSettings() {
                         <Text className="font-pixel text-text-secondary text-sm">
                             🔔 ПРОВЕРКА: КАЖДЫЕ 30 МИНУТ
                         </Text>
-                        
+
                         {Constants.appOwnership === 'expo' && (
                             <Text className="font-pixel text-yellow-400 text-sm mt-2">
                                 ⚠️ EXPO GO: PUSH-УВЕДОМЛЕНИЯ НЕДОСТУПНЫ
                             </Text>
                         )}
-                        
+
                         {Constants.appOwnership !== 'expo' && permissionStatus === 'denied' && (
                             <Text className="font-pixel text-red-400 text-sm mt-2">
                                 ⚠️ РАЗРЕШЕНИЕ ОТКЛОНЕНО. ЗАЙДИТЕ В НАСТРОЙКИ УСТРОЙСТВА.
                             </Text>
                         )}
-                        
+
                         {Constants.appOwnership !== 'expo' && permissionStatus === 'granted' && (
                             <Text className="font-pixel text-green-400 text-sm mt-2">
                                 ✅ PUSH-УВЕДОМЛЕНИЯ ДОСТУПНЫ

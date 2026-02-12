@@ -1,6 +1,7 @@
 // src/contexts/SettingsContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 export type ThemeMode = 'light' | 'dark';
@@ -16,7 +17,8 @@ interface SettingsContextType {
     updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
     toggleTemperatureUnit: () => Promise<void>;
     toggleTheme: () => Promise<void>;
-    toggleNotifications: (enabled: boolean) => Promise<void>;
+    toggleNotifications: (enabled: boolean) => Promise<void>; // Promise<void>!
+    requestNotificationPermissions: () => Promise<boolean>;
 }
 
 const defaultSettings: Settings = {
@@ -40,7 +42,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         try {
             const saved = await AsyncStorage.getItem(STORAGE_KEY);
             if (saved) {
-                setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+                const loadedSettings = { ...defaultSettings, ...JSON.parse(saved) };
+                setSettings(loadedSettings);
+                
+                // ✅ СИНХРОНИЗАЦИЯ: Загружаем в WeatherNotificationService
+                await WeatherNotificationService.saveSettings({ 
+                    enabled: loadedSettings.notifications 
+                });
+                console.log('🔄 Настройки синхронизированы с сервисом уведомлений');
             }
         } catch (error) {
             console.error('❌ Ошибка загрузки настроек:', error);
@@ -59,6 +68,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         const updated = { ...settings, ...newSettings };
         setSettings(updated);
         await saveSettings(updated);
+        
+        // ✅ СИНХРОНИЗАЦИЯ при изменении уведомлений
+        if (newSettings.notifications !== undefined) {
+            await WeatherNotificationService.saveSettings({ 
+                enabled: newSettings.notifications 
+            });
+        }
     };
 
     const toggleTemperatureUnit = async () => {
@@ -72,7 +88,33 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     };
 
     const toggleNotifications = async (enabled: boolean) => {
-        await updateSettings({ notifications: enabled });
+        const updated = { ...settings, notifications: enabled };
+        setSettings(updated);
+        await saveSettings(updated);
+        
+        // ✅ СИНХРОНИЗАЦИЯ: Сохраняем в WeatherNotificationService
+        await WeatherNotificationService.saveSettings({ enabled });
+        
+        // Если включаем - запрашиваем разрешения
+        if (enabled) {
+            const hasPermission = await WeatherNotificationService.requestPermissions();
+            if (!hasPermission) {
+                // Если нет разрешения - выключаем обратно
+                await updateSettings({ notifications: false });
+                // ❌ НЕ возвращаем boolean, просто выходим
+                return;
+            }
+        }
+        
+        // ✅ Возвращаем void (ничего)
+    };
+
+    const requestNotificationPermissions = async (): Promise<boolean> => {
+        const hasPermission = await WeatherNotificationService.requestPermissions();
+        if (hasPermission) {
+            await updateSettings({ notifications: true });
+        }
+        return hasPermission;
     };
 
     return (
@@ -82,6 +124,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             toggleTemperatureUnit,
             toggleTheme,
             toggleNotifications,
+            requestNotificationPermissions,
         }}>
             {children}
         </SettingsContext.Provider>

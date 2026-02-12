@@ -1,4 +1,3 @@
-// src/hooks/useWeather.ts
 import { useQuery } from '@tanstack/react-query';
 import { fetchWeather } from '../api/services/weatherService';
 import { WeatherData } from '../types/open-meteo';
@@ -10,15 +9,20 @@ export function useWeather(lat: number, lon: number) {
   const { settings } = useSettings();
 
   return useQuery<WeatherData, Error>({
-    queryKey: ['weather', lat, lon, settings.temperatureUnit],
+    queryKey: ['weather', lat, lon], // УБРАЛИ temperatureUnit - он не влияет на запрос
     queryFn: async () => {
-      console.log('🔄 useWeather: ЗАПРОС погоды для', lat.toFixed(4), lon.toFixed(4));
+      // ТОЛЬКО ключевые логи в DEV режиме
+      if (__DEV__) {
+        console.log('🔄 Запрос погоды для', lat.toFixed(4), lon.toFixed(4));
+      }
 
       // 1. Получаем новые данные
       const newData = await fetchWeather(lat, lon);
-      console.log('🌤️ Новые данные получены');
-      console.log('🌡️ Температура:', newData.current.temperature);
-      console.log('☁️  Погода:', newData.current.weatherCode);
+      
+      if (__DEV__) {
+        console.log('🌤️ Получено:', newData.current.temperature + '°C', 
+          newData.current.weatherCode);
+      }
 
       // 2. Сохраняем координаты для фоновых задач
       try {
@@ -27,36 +31,40 @@ export function useWeather(lat: number, lon: number) {
         console.error('❌ Ошибка сохранения координат:', error);
       }
 
-      // 3. Получаем старый снимок ДЛЯ ЭТОЙ ЛОКАЦИИ
-      console.log('📂 Запрашиваю oldSnapshot для этой локации...');
-      const oldSnapshot = await WeatherNotificationService.getLastSnapshot(lat, lon);
-
-      if (oldSnapshot) {
-        console.log('📊 Старые данные ЕСТЬ для сравнения');
-      } else {
-        console.log('📭 Старых данных НЕТ (первый запуск для этой локации)');
+      // 3. Проверяем изменения ТОЛЬКО если уведомления включены
+      if (settings.notifications) {
+        // Получаем старый снимок
+        const oldSnapshot = await WeatherNotificationService.getLastSnapshot(lat, lon);
+        
+        if (__DEV__) {
+          console.log('📊 Старые данные:', oldSnapshot ? 'Есть' : 'Нет');
+        }
+        
+        // Проверяем изменения
+        const changes = await WeatherNotificationService.checkAndNotify(
+          lat, 
+          lon, 
+          oldSnapshot, 
+          newData
+        );
+        
+        if (changes.length > 0 && __DEV__) {
+          console.log('🔔 Изменений:', changes.length);
+        }
+      } else if (__DEV__) {
+        console.log('🔕 Уведомления выключены, пропускаем проверку');
+        
+        // Но сохраняем данные для будущих сравнений если они понадобятся
+        const oldSnapshot = await WeatherNotificationService.getLastSnapshot(lat, lon);
+        if (!oldSnapshot) {
+          await WeatherNotificationService.saveLastWeather(lat, lon, newData);
+        }
       }
 
-      // 4. Проверяем и уведомляем (передаем координаты!)
-      console.log('🔔 Вызываю checkAndNotify...');
-      const changes = await WeatherNotificationService.checkAndNotify(
-        lat, 
-        lon, 
-        oldSnapshot, 
-        newData
-      );
-      
-      console.log('🎯 checkAndNotify вернул', changes.length, 'изменений');
-
-      if (changes.length > 0) {
-        console.log('🔔 ИТОГО ИЗМЕНЕНИЙ:', changes.length);
-      }
-
-      console.log('='.repeat(50));
       return newData;
     },
     refetchInterval: 30 * 60 * 1000, // 30 минут
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false, // ВЫКЛЮЧИЛИ - чтобы не конфликтовало с фоновой задачей
     staleTime: 15 * 60 * 1000, // 15 минут
     retry: 2,
     enabled: !!lat && !!lon,

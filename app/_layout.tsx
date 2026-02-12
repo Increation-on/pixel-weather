@@ -1,9 +1,10 @@
+// app/_layout.tsx
 import { useEffect, useRef } from 'react';
 import { useFonts } from 'expo-font';
 import { PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import Head from 'expo-router/head';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Link, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { ToastProvider } from '@/src/providers/ToastProvider';
 import { NetworkProvider } from '@/src/providers/NetworkProvider';
 import { SettingsProvider } from '@/src/contexts/SettingContext';
@@ -11,166 +12,100 @@ import ThemeWrapper from '@/src/components/ThemeWrapper';
 import { queryClient } from '@/src/lib/react-query';
 import '../global.css';
 import * as SplashScreenExpo from 'expo-splash-screen';
-import { View, AppState, Platform, PermissionsAndroid } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance } from '@notifee/react-native';
+
+// 🔔 Уведомления
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// 🚀 Наши сервисы
+import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+import { pushTokenService } from '@/src/api/services/pushTokenService';
+import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 
 SplashScreenExpo.preventAutoHideAsync();
 
+// Конфигурация уведомлений
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
+  const [fontsLoaded] = useFonts({
     'PressStart2P-Regular': PressStart2P_400Regular,
   });
 
-  const initializedRef = useRef(false);
+  // ✅ Используем правильный тип EventSubscription
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
-  // ========== Android 13+ разрешения ==========
   useEffect(() => {
-    const requestAndroid13Permission = async () => {
-      if (Platform.OS === 'android' && Platform.Version >= 33) {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-            {
-              title: 'Разрешение на уведомления',
-              message: 'Приложению нужно разрешение для показа уведомлений',
-              buttonNeutral: 'Спросить позже',
-              buttonNegative: 'Отмена',
-              buttonPositive: 'OK',
-            }
-          );
-          console.log('Android 13+ разрешение:', granted);
-        } catch (err) {
-          console.warn('Ошибка запроса разрешения:', err);
-        }
-      }
-    };
+    if (!fontsLoaded) return;
 
-    requestAndroid13Permission();
-  }, []);
+    const initializeApp = async () => {
+      console.log('🚀 Инициализация приложения...');
 
-  // В RootLayout.tsx ОСТАВЬТЕ ТОЛЬКО ЭТО:
-useEffect(() => {
-  console.log('=== СОЗДАНИЕ КАНАЛОВ NOTIFEE ===');
-
-  const createNotificationChannel = async () => {
-    if (Platform.OS === 'android') {
       try {
-        console.log('🔔 Создаю каналы уведомлений через Notifee...');
+        // 1. Инициализируем уведомления
+        await WeatherNotificationService.initialize();
+
+        // 2. Регистрируем фоновую задачу
+        await registerBackgroundTask();
+
+        // 3. Запрашиваем разрешения и получаем токен
+        const token = await registerForPushNotificationsAsync();
         
-        // Запрашиваем разрешения
-        await notifee.requestPermission();
-        
-        // Создаем каналы
-        await notifee.createChannel({
-          id: 'pixel_weather_high',
-          name: '🚨 Экстренные погодные оповещения',
-          importance: AndroidImportance.HIGH,
-          sound: 'default',
-          vibration: true,
-          vibrationPattern: [300, 200, 300, 200],
-          lights: true,
-          lightColor: '#FF3B30',
-          bypassDnd: true,
-          description: 'Критические погодные предупреждения',
-        });
-        console.log('✅ Канал создан: pixel_weather_high (HIGH)');
-
-        await notifee.createChannel({
-          id: 'pixel_weather_default',
-          name: '📊 Погодные обновления',
-          importance: AndroidImportance.DEFAULT,
-          sound: 'default',
-          vibration: true,
-          vibrationPattern: [300, 200, 300, 200],
-          lights: true,
-          lightColor: '#007AFF',
-          description: 'Ежедневные прогнозы и обновления',
-        });
-        console.log('✅ Канал создан: pixel_weather_default (DEFAULT)');
-
-        await notifee.createChannel({
-          id: 'pixel_weather_low',
-          name: '🌤️ Тихие обновления',
-          importance: AndroidImportance.LOW,
-          vibration: false,
-          lights: false,
-          description: 'Фоновые обновления без звука',
-        });
-        console.log('✅ Канал создан: pixel_weather_low (LOW)');
-        
-        console.log('🎉 Все каналы Notifee созданы успешно!');
-        
-      } catch (channelError) {
-        console.error('❌ Ошибка создания каналов Notifee:', channelError);
-      }
-    }
-  };
-
-  createNotificationChannel();
-}, []); 
-
-  // ========== Инициализация приложения ==========
-  useEffect(() => {
-    if ((fontsLoaded || fontError) && !initializedRef.current) {
-      initializedRef.current = true;
-      
-      const initializeApp = async () => {
-        try {
-          console.log('🚀 Инициализация приложения...');
-
-          // Получаем FCM токен
-          const token = await messaging().getToken();
-          if (token) {
-            console.log(`✅ Firebase токен: ${token.substring(0, 20)}...`);
-            
-            // Проверяем канал после получения токена
-            if (Platform.OS === 'android') {
-              console.log('🔍 Для проверки канала выполните:');
-              console.log('adb shell dumpsys notification | findstr pixel_weather');
-              console.log('📱 Или проверьте вручную в Настройки → Приложения → Pixel Weather → Уведомления');
-            }
-          }
-
-        } catch (error) {
-          console.error('❌ Ошибка инициализации:', error);
-        } finally {
-          await SplashScreenExpo.hideAsync();
+        if (token) {
+          console.log('📱 Expo Push Token:', token);
+          
+          await AsyncStorage.setItem('expo_push_token', token);
+          
+          // 🚨 ОТПРАВЛЯЕМ НА СЕРВЕР!
+          await pushTokenService.sendToken(token);
         }
-      };
 
-      initializeApp();
-    }
-  }, [fontsLoaded, fontError]);
+        // 4. Слушаем уведомления
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+          console.log('📨 Получено уведомление:', notification.request.content.title);
+        });
 
-  // ========== AppState монитор ==========
-  useEffect(() => {
-    let backgroundStartTime: number | null = null;
+        // 5. Слушаем нажатия
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log('👉 Нажатие на уведомление');
+          const data = response.notification.request.content.data;
+        });
 
-    const handleAppStateChange = (state: string) => {
-      const prevState = AppState.currentState;
-      
-      if (prevState !== state) {
-        console.log(`📱 AppState: ${prevState} → ${state}`);
-      }
+        await SplashScreenExpo.hideAsync();
+        console.log('✅ Инициализация завершена');
 
-      if (state === 'background') {
-        backgroundStartTime = Date.now();
-      }
-
-      if (state === 'active' && backgroundStartTime) {
-        const timeInBackground = Date.now() - backgroundStartTime;
-        console.log(`⏱️ В фоне: ${Math.floor(timeInBackground / 1000)}с`);
-        backgroundStartTime = null;
+      } catch (error) {
+        console.error('❌ Ошибка инициализации:', error);
+        await SplashScreenExpo.hideAsync();
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    initializeApp();
 
-    return () => subscription.remove();
-  }, []);
+    // ✅ ИСПРАВЛЕНО: используем .remove() вместо removeNotificationSubscription
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, [fontsLoaded]);
 
-  if (!fontsLoaded && !fontError) {
+  if (!fontsLoaded) {
     return null;
   }
 
@@ -183,39 +118,59 @@ useEffect(() => {
               <title>Pixel Weather</title>
               <meta name="theme-color" content="#1a1f2e" />
             </Head>
-
             <ThemeWrapper>
-              {/* Ссылка на тестовый экран - только в DEV */}
-              {__DEV__ && (
-                <View style={{ position: 'absolute', top: 50, left: 20, zIndex: 9999 }}>
-                  <Link 
-                    href="/test-firebase" 
-                    style={{ 
-                      color: '#4ecdc4',
-                      backgroundColor: 'rgba(26, 31, 46, 0.9)',
-                      padding: 10,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: '#4ecdc4',
-                      fontFamily: 'PressStart2P-Regular',
-                      fontSize: 10,
-                    }}
-                  >
-                    🔥 TEST FIREBASE
-                  </Link>
-                </View>
-              )}
-
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: 'fade',
-                }}
-              />
+              <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
             </ThemeWrapper>
           </QueryClientProvider>
         </ToastProvider>
       </NetworkProvider>
     </SettingsProvider>
   );
+}
+
+/**
+ * 📱 Регистрация для получения Expo Push Token
+ */
+async function registerForPushNotificationsAsync() {
+  if (!Device.isDevice) {
+    console.log('📱 Пуш-уведомления только на реальных устройствах');
+    return null;
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  
+  if (finalStatus !== 'granted') {
+    console.error('❌ Нет разрешения на уведомления');
+    return null;
+  }
+
+  const projectId = Constants?.expoConfig?.extra?.eas?.projectId;
+  if (!projectId) {
+    console.error('❌ Нет projectId в app.config.js');
+    return null;
+  }
+
+  try {
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+    
+    return token;
+  } catch (error) {
+    console.error('❌ Ошибка получения токена:', error);
+    return null;
+  }
 }
