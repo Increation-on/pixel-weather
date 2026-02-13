@@ -5,6 +5,7 @@ import { GeocodingService } from '../api/services/geocoding.service';
 import { StorageService, StoredLocation } from '../api/services/storage.service';
 import { CitySearchResult } from '../api/services/city-search.service';
 import { useToast } from './useToast';
+import { pushTokenService } from '../api/services/pushTokenService';
 
 interface UseLocationManagerReturn {
     coordinates: { lat: number; lon: number } | null;
@@ -37,6 +38,24 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         isFetching: isFetchingLocation,
     } = useGeolocation(false);
 
+    // 🎯 Отправка координат на сервер
+    const sendCoordinatesToServer = useCallback(async (lat: number, lon: number, source: string) => {
+        try {
+            const token = await pushTokenService.getStoredToken();
+            if (!token) {
+                console.log(`📍 Нет push-токена, координаты не отправлены (${source})`);
+                return;
+            }
+            
+            await pushTokenService.updateLocation(token, lat, lon)
+                .catch(err => console.warn(`⚠️ Ошибка отправки координат (${source}):`, err));
+            
+            console.log(`📍 Координаты отправлены на сервер (${source})`);
+        } catch (error) {
+            console.warn(`⚠️ Не удалось отправить координаты (${source}):`, error);
+        }
+    }, []);
+
     // 🎯 Метод для ручного выбора города
     const setManualCity = useCallback(async (city: CitySearchResult) => {
         try {
@@ -45,21 +64,24 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                 lon: city.lon,
             };
 
-            // ✅ Обновляем состояние ИЗ city напрямую
+            // Обновляем состояние
             setUserCity(city.city);
             setUserCountry(city.country || null);
             setCoordinates(newCoordinates);
 
-            // ✅ Создаем locationData для сохранения
+            // Сохраняем в Storage
             const locationData: StoredLocation = {
                 city: city.city,
-                country: city.country, // Может быть undefined, но StoredLocation.country тоже string | undefined
+                country: city.country,
                 coordinates: newCoordinates,
                 timestamp: Date.now(),
                 isManual: true,
             };
 
             await StorageService.saveSelectedLocation(locationData);
+
+            // 🔥 Отправляем координаты на сервер
+            await sendCoordinatesToServer(city.lat, city.lon, 'manual');
 
             showToast({
                 message: `Город "${city.city}" сохранен`,
@@ -75,9 +97,9 @@ export const useLocationManager = (): UseLocationManagerReturn => {
             });
             throw error;
         }
-    }, [showToast]);
+    }, [showToast, sendCoordinatesToServer]);
 
-    // 🎯 1. Загрузка сохраненного города
+    // 🎯 Загрузка сохраненного города
     useEffect(() => {
         const loadSavedLocation = async () => {
             try {
@@ -88,6 +110,14 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                     setUserCity(savedLocation.city);
                     setUserCountry(savedLocation.country || null);
                     setCoordinates(savedLocation.coordinates);
+                    
+                    // 🔥 Отправляем сохраненные координаты на сервер при загрузке
+                    await sendCoordinatesToServer(
+                        savedLocation.coordinates.lat, 
+                        savedLocation.coordinates.lon, 
+                        'storage'
+                    );
+                    
                     return;
                 }
 
@@ -101,7 +131,7 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         };
 
         loadSavedLocation();
-    }, []);
+    }, [getLocation, sendCoordinatesToServer]);
 
     // 🎯 Функция для определения города
     const determineCity = useCallback(async (lat: number, lon: number) => {
@@ -114,44 +144,49 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                 setUserCountry(result.country || null);
 
                 await StorageService.saveSelectedLocation({
-                    city: result.city, // ✅ result.city может быть undefined, но мы в if-блоке
+                    city: result.city,
                     country: result.country || '',
                     coordinates: { lat, lon },
                     timestamp: Date.now(),
                 });
+                
+                // 🔥 Отправляем координаты на сервер
+                await sendCoordinatesToServer(lat, lon, 'geocode');
                 return;
             }
 
-            // ✅ ФИКС: Обрабатываем undefined
             const approximateCity = GeocodingService.getCityByApproximation(lat, lon);
 
             if (approximateCity) {
-                // Если город найден
                 setUserCity(approximateCity);
-
                 await StorageService.saveSelectedLocation({
-                    city: approximateCity, // ✅ Всегда строка (не undefined)
+                    city: approximateCity,
                     country: '',
                     coordinates: { lat, lon },
                     timestamp: Date.now(),
                 });
+                
+                // 🔥 Отправляем координаты на сервер
+                await sendCoordinatesToServer(lat, lon, 'approximate');
             } else {
-                // Если город не найден - ставим null
                 setUserCity(null);
-                // Не сохраняем в storage, так как нет города
             }
 
         } catch (error) {
             console.error('❌ Ошибка геокодинга:', error);
             const approximateCity = GeocodingService.getCityByApproximation(lat, lon);
-            // ✅ Обрабатываем undefined
             setUserCity(approximateCity || null);
+            
+            if (approximateCity) {
+                // 🔥 Отправляем координаты на сервер даже без города
+                await sendCoordinatesToServer(lat, lon, 'fallback');
+            }
         } finally {
             setIsGeocoding(false);
         }
-    }, []);
+    }, [sendCoordinatesToServer]);
 
-    // 🎯 2. Обработка новой геолокации
+    // 🎯 Обработка новой геолокации
     useEffect(() => {
         if (location && location.latitude !== 55.7558) {
             const newCoordinates = {
@@ -171,11 +206,14 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                     coordinates: newCoordinates,
                     timestamp: Date.now(),
                 });
+                
+                // 🔥 Отправляем координаты на сервер
+                sendCoordinatesToServer(location.latitude, location.longitude, 'device');
             } else {
                 determineCity(location.latitude, location.longitude);
             }
         }
-    }, [location, determineCity]);
+    }, [location, determineCity, sendCoordinatesToServer]);
 
     // 🎯 Обработчики
     const handleRefreshLocation = async () => {
