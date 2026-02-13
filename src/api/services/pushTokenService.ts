@@ -25,5 +25,26 @@ export const pushTokenService = {
       console.error('❌ Ошибка отправки токена:', error);
       return null;
     }
+  },
+
+  // 🔥 НОВЫЙ МЕТОД
+  async updateLocation(token: string, lat: number, lon: number) {
+    try {
+      console.log('📍 Отправка координат на сервер...');
+      
+      fetch(`${API_URL}/api/update-location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          token, 
+          lat, 
+          lon,
+          timestamp: Date.now()
+        })
+      }).catch(err => console.warn('⚠️ Location update failed:', err));
+      
+    } catch (error) {
+      console.warn('⚠️ Location update error:', error);
+    }
   }
 };
