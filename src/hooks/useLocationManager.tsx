@@ -187,33 +187,52 @@ export const useLocationManager = (): UseLocationManagerReturn => {
     }, [sendCoordinatesToServer]);
 
     // 🎯 Обработка новой геолокации
-    useEffect(() => {
-        if (location && location.latitude !== 55.7558) {
-            const newCoordinates = {
-                lat: location.latitude,
-                lon: location.longitude
-            };
+    // src/hooks/useLocationManager.ts
+useEffect(() => {
+    if (location && location.latitude !== 55.7558) {
+        const newCoordinates = {
+            lat: location.latitude,
+            lon: location.longitude
+        };
 
-            setCoordinates(newCoordinates);
+        setCoordinates(newCoordinates);
 
-            if (location.city && location.country) {
-                setUserCity(location.city);
-                setUserCountry(location.country);
+        // ✅ Город уже есть в location из useGeolocation!
+        // useGeolocation уже сделал геокодинг через Nominatim
+        if (location.city && location.country) {
+            setUserCity(location.city);
+            setUserCountry(location.country);
 
-                StorageService.saveSelectedLocation({
-                    city: location.city,
-                    country: location.country || '',
-                    coordinates: newCoordinates,
-                    timestamp: Date.now(),
-                });
-                
-                // 🔥 Отправляем координаты на сервер
-                sendCoordinatesToServer(location.latitude, location.longitude, 'device');
-            } else {
-                determineCity(location.latitude, location.longitude);
-            }
+            StorageService.saveSelectedLocation({
+                city: location.city,
+                country: location.country || '',
+                coordinates: newCoordinates,
+                timestamp: Date.now(),
+            });
+            
+            // 🔥 Отправляем координаты на сервер
+            sendCoordinatesToServer(location.latitude, location.longitude, 'device');
+        } else {
+            // 🚫 УБИРАЕМ determineCity ОТСЮДА!
+            // Геокодинг уже сделан в useGeolocation
+            console.log('⚠️ Геокодинг не вернул город, используем координаты');
+            
+            // Просто сохраняем координаты без города
+            setUserCity(null);
+            setUserCountry(null);
+            
+            StorageService.saveSelectedLocation({
+                city: `📍 ${newCoordinates.lat.toFixed(4)}, ${newCoordinates.lon.toFixed(4)}`,
+                country: '',
+                coordinates: newCoordinates,
+                timestamp: Date.now(),
+            });
+            
+            // 🔥 Всё равно отправляем координаты на сервер
+            sendCoordinatesToServer(location.latitude, location.longitude, 'device-fallback');
         }
-    }, [location, determineCity, sendCoordinatesToServer]);
+    }
+}, [location, sendCoordinatesToServer]); // ✅ Убираем determineCity из зависимостей!
 
     // 🎯 Обработчики
     const handleRefreshLocation = async () => {
