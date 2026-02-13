@@ -20,10 +20,10 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// 🚀 Наши сервисы
-import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+// 🚀 Наши сервисы — ТОЛЬКО pushTokenService!
 import { pushTokenService } from '@/src/api/services/pushTokenService';
-import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
+// 🚫 УДАЛЯЕМ: import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+// 🚫 УДАЛЯЕМ: import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 
 SplashScreenExpo.preventAutoHideAsync();
 
@@ -43,7 +43,6 @@ export default function RootLayout() {
     'PressStart2P-Regular': PressStart2P_400Regular,
   });
 
-  // ✅ Используем правильный тип EventSubscription
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
@@ -54,13 +53,10 @@ export default function RootLayout() {
       console.log('🚀 Инициализация приложения...');
 
       try {
-        // 1. Инициализируем уведомления
-        await WeatherNotificationService.initialize();
+        // 🚫 УДАЛЯЕМ: await WeatherNotificationService.initialize();
+        // 🚫 УДАЛЯЕМ: await registerBackgroundTask();
 
-        // 2. Регистрируем фоновую задачу
-        await registerBackgroundTask();
-
-        // 3. Запрашиваем разрешения и получаем токен
+        // Получаем токен и регистрируем устройство
         const token = await registerForPushNotificationsAsync();
         
         if (token) {
@@ -68,19 +64,18 @@ export default function RootLayout() {
           
           await AsyncStorage.setItem('expo_push_token', token);
           
-          // 🚨 ОТПРАВЛЯЕМ НА СЕРВЕР!
+          // ✅ Отправляем токен на сервер
           await pushTokenService.sendToken(token);
         }
 
-        // 4. Слушаем уведомления
+        // Слушаем уведомления
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
           console.log('📨 Получено уведомление:', notification.request.content.title);
         });
 
-        // 5. Слушаем нажатия
+        // Слушаем нажатия
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
           console.log('👉 Нажатие на уведомление');
-          const data = response.notification.request.content.data;
         });
 
         await SplashScreenExpo.hideAsync();
@@ -94,7 +89,6 @@ export default function RootLayout() {
 
     initializeApp();
 
-    // ✅ ИСПРАВЛЕНО: используем .remove() вместо removeNotificationSubscription
     return () => {
       if (notificationListener.current) {
         notificationListener.current.remove();
