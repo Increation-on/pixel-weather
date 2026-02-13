@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
-import * as Device from 'expo-device'; 
+import * as Device from 'expo-device';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'https://pixel-weather-server.vercel.app';
 
 export const pushTokenService = {
+  // Сохраняем токен на сервере
   async sendToken(token: string) {
     try {
       const response = await fetch(`${API_URL}/api/save-token`, {
@@ -27,12 +29,22 @@ export const pushTokenService = {
     }
   },
 
-  // 🔥 НОВЫЙ МЕТОД
+  // Получаем сохранённый токен из AsyncStorage
+  async getStoredToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('expo_push_token');
+    } catch (error) {
+      console.error('❌ Ошибка получения токена:', error);
+      return null;
+    }
+  },
+
+  // Отправляем координаты на сервер
   async updateLocation(token: string, lat: number, lon: number) {
     try {
       console.log('📍 Отправка координат на сервер...');
       
-      fetch(`${API_URL}/api/update-location`, {
+      await fetch(`${API_URL}/api/update-location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -41,8 +53,9 @@ export const pushTokenService = {
           lon,
           timestamp: Date.now()
         })
-      }).catch(err => console.warn('⚠️ Location update failed:', err));
+      });
       
+      console.log('✅ Координаты отправлены');
     } catch (error) {
       console.warn('⚠️ Location update error:', error);
     }
