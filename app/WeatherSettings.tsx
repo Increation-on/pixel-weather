@@ -13,7 +13,8 @@ import { Link } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { useSettings } from '@/src/contexts/SettingContext';
-import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+// 🚫 УДАЛЯЕМ: import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+import * as Notifications from 'expo-notifications'; // ✅ Добавляем для разрешений
 
 export default function WeatherSettings() {
     const {
@@ -31,61 +32,56 @@ export default function WeatherSettings() {
 
     const loadPermissionStatus = async () => {
         try {
-            const status = await WeatherNotificationService.getPermissionStatus();
+            const { status } = await Notifications.getPermissionsAsync();
             setPermissionStatus(status);
-            console.log('Статус разрешений загружен:', status);
+            console.log('📱 Статус разрешений:', status);
         } catch (error) {
-            console.error('Ошибка загрузки статуса разрешений:', error);
+            console.error('❌ Ошибка загрузки статуса разрешений:', error);
         }
     };
 
     const handleToggleNotifications = async (value: boolean) => {
-  try {
-    if (value) {
-      // Сначала запрашиваем разрешения
-      const hasPermission = await WeatherNotificationService.requestPermissions();
-      if (!hasPermission) {
-        const status = await WeatherNotificationService.getPermissionStatus();
-        setPermissionStatus(status);
-        // Не вызываем toggleNotifications - оставляем выключенным
-        return;
-      }
-      setPermissionStatus('granted');
-    }
-    
-    // Только если разрешение есть (или выключаем) - меняем настройки
-    await toggleNotifications(value);
-    
-    console.log(`Уведомления ${value ? 'включены' : 'выключены'}`);
-    
-    // Обновляем статус
-    await loadPermissionStatus();
-    
-  } catch (error) {
-    console.error('Ошибка переключения уведомлений:', error);
-  }
-};
+        try {
+            if (value) {
+                // Запрашиваем разрешения напрямую через Notifications
+                const { status } = await Notifications.requestPermissionsAsync();
+                
+                if (status !== 'granted') {
+                    setPermissionStatus(status);
+                    console.log('🔕 Разрешение не получено');
+                    return; // Не включаем уведомления
+                }
+                setPermissionStatus('granted');
+            }
+            
+            // Меняем настройки через контекст
+            await toggleNotifications(value);
+            console.log(`🔔 Уведомления ${value ? 'включены' : 'выключены'}`);
+            
+        } catch (error) {
+            console.error('❌ Ошибка переключения уведомлений:', error);
+        }
+    };
 
     const handleRequestPermission = async () => {
-        const hasPermission = await WeatherNotificationService.requestPermissions();
-        const status = await WeatherNotificationService.getPermissionStatus();
+        const { status } = await Notifications.requestPermissionsAsync();
         setPermissionStatus(status);
 
-        if (hasPermission) {
-            // ✅ ТОЛЬКО через SettingContext
+        if (status === 'granted') {
             await toggleNotifications(true);
+            console.log('✅ Разрешение получено, уведомления включены');
         }
     };
 
     const getPermissionText = () => {
         if (Constants.appOwnership === 'expo') {
-            return '📱 EXPO GO';
+            return '📱 EXPO GO (PUSH НЕДОСТУПЕН)';
         }
 
         switch (permissionStatus) {
             case 'granted': return '✅ РАЗРЕШЕНО';
             case 'denied': return '❌ ОТКЛОНЕНО';
-            default: return '❓ НЕ ОПРЕДЕЛЕНО';
+            default: return '❓ НЕ ЗАПРАШИВАЛОСЬ';
         }
     };
 
@@ -93,13 +89,11 @@ export default function WeatherSettings() {
         if (Constants.appOwnership === 'expo') {
             return false;
         }
-
         return permissionStatus === 'denied' && !settings.notifications;
     };
 
     return (
         <SafeAreaView className="flex-1 bg-background">
-            {/* StatusBar меняется автоматически через ThemeWrapper */}
             <StatusBar
                 barStyle={settings.theme === 'dark' ? 'light-content' : 'dark-content'}
                 backgroundColor={settings.theme === 'dark' ? '#1a1f2e' : '#f8fafc'}
@@ -118,7 +112,6 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 12 }}
                             resizeMode="contain"
                         />
-                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                         <Text className="font-pixel text-text-primary text-3xl">НАСТРОЙКИ</Text>
                     </View>
                 </View>
@@ -130,14 +123,12 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                         <Text className="font-pixel text-text-primary text-xl">УВЕДОМЛЕНИЯ</Text>
                     </View>
 
                     <View className="bg-card rounded-lg p-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                                 <Text className="font-pixel text-text-primary text-base mb-1">
                                     УВЕДОМЛЕНИЯ О ПОГОДЕ
                                 </Text>
@@ -176,6 +167,7 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
+                {/* ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ */}
                 <View className="mb-8">
                     <View className="flex-row items-center mb-4">
                         <Image
@@ -183,14 +175,12 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                         <Text className="font-pixel text-text-primary text-xl">ВНЕШНИЙ ВИД</Text>
                     </View>
 
                     <View className="bg-card rounded-lg p-4 mb-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                                 <Text className="font-pixel text-text-primary text-base mb-1">
                                     ТЕМНАЯ ТЕМА
                                 </Text>
@@ -210,7 +200,6 @@ export default function WeatherSettings() {
                     <View className="bg-card rounded-lg p-4 border-2 border-card">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1 mr-4">
-                                {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                                 <Text className="font-pixel text-text-primary text-base mb-1">
                                     ГРАДУСЫ ЦЕЛЬСИЯ
                                 </Text>
@@ -248,7 +237,6 @@ export default function WeatherSettings() {
                             style={{ width: 48, height: 48, marginRight: 8 }}
                             resizeMode="contain"
                         />
-                        {/* ⭐ ЗАМЕНА: text-white → text-text-primary */}
                         <Text className="font-pixel text-text-primary text-xl">ИНФОРМАЦИЯ</Text>
                     </View>
 
@@ -257,7 +245,7 @@ export default function WeatherSettings() {
                             ℹ️ УВЕДОМЛЕНИЯ ТРЕБУЮТ РАЗРЕШЕНИЯ
                         </Text>
                         <Text className="font-pixel text-text-secondary text-sm">
-                            🔔 ПРОВЕРКА: КАЖДЫЕ 30 МИНУТ
+                            🔔 СЕРВЕР ПРОВЕРЯЕТ ПОГОДУ КАЖДЫЕ 30 МИНУТ
                         </Text>
 
                         {Constants.appOwnership === 'expo' && (

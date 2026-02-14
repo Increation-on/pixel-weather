@@ -6,12 +6,10 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClientProvider } from '@tanstack/react-query';
 
+// 🚀 Наши сервисы — ТОЛЬКО pushTokenService!
 import { pushTokenService } from '@/src/api/services/pushTokenService';
-import { queryClient } from '@/src/lib/react-query';
-import { SettingsProvider } from '@/src/contexts/SettingContext';
-import { NetworkProvider } from '@/src/providers/NetworkProvider';
-import { ToastProvider } from '@/src/providers/ToastProvider';
-import ThemeWrapper from '@/src/components/ThemeWrapper';
+// 🚫 УДАЛЯЕМ: import { WeatherNotificationService } from '@/src/api/services/WeatherNotificationService';
+// 🚫 УДАЛЯЕМ: import { registerBackgroundTask } from '@/src/api/services/BackgroundWeatherService';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -39,15 +37,47 @@ export default function RootLayout() {
   );
 }
 
-function LayoutContent() {
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
-    const registerDevice = async () => {
-      if (!Device.isDevice) {
-        console.log('📱 Пуш только на реальных устройствах');
-        return;
+    if (!fontsLoaded) return;
+
+    const initializeApp = async () => {
+      console.log('🚀 Инициализация приложения...');
+
+      try {
+        // 🚫 УДАЛЯЕМ: await WeatherNotificationService.initialize();
+        // 🚫 УДАЛЯЕМ: await registerBackgroundTask();
+
+        // Получаем токен и регистрируем устройство
+        const token = await registerForPushNotificationsAsync();
+        
+        if (token) {
+          console.log('📱 Expo Push Token:', token);
+          
+          await AsyncStorage.setItem('expo_push_token', token);
+          
+          // ✅ Отправляем токен на сервер
+          await pushTokenService.sendToken(token);
+        }
+
+        // Слушаем уведомления
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+          console.log('📨 Получено уведомление:', notification.request.content.title);
+        });
+
+        // Слушаем нажатия
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log('👉 Нажатие на уведомление');
+        });
+
+        await SplashScreenExpo.hideAsync();
+        console.log('✅ Инициализация завершена');
+
+      } catch (error) {
+        console.error('❌ Ошибка инициализации:', error);
+        await SplashScreenExpo.hideAsync();
       }
 
       const { status } = await Notifications.requestPermissionsAsync();
