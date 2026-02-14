@@ -8,8 +8,6 @@ export const pushTokenService = {
   // Сохраняем токен на сервере
   async sendToken(token: string) {
     try {
-      console.log('📱 Регистрация устройства на сервере...');
-      
       const response = await fetch(`${API_URL}/api/save-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -18,25 +16,20 @@ export const pushTokenService = {
           deviceInfo: {
             platform: Platform.OS,
             model: Device.modelName || 'unknown',
-          },
-        }),
+          }
+        })
       });
-
-      const data = await response.json();
       
-      if (response.ok) {
-        console.log('✅ Устройство зарегистрировано');
-        return { success: true, data };
-      } else {
-        console.error('❌ Ошибка регистрации:', data);
-        return { success: false, error: data };
-      }
+      const data = await response.json();
+      console.log('✅ Токен отправлен на сервер:', data);
+      return data;
     } catch (error) {
-      console.error('❌ Сетевая ошибка:', error);
-      return { success: false, error };
+      console.error('❌ Ошибка отправки токена:', error);
+      return null;
     }
   },
 
+  // Получаем сохранённый токен из AsyncStorage
   async getStoredToken(): Promise<string | null> {
     try {
       return await AsyncStorage.getItem('expo_push_token');
@@ -45,7 +38,6 @@ export const pushTokenService = {
       return null;
     }
   },
-
 
   // Отправляем координаты на сервер
   async updateLocation(token: string, lat: number, lon: number) {
