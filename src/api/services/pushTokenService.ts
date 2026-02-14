@@ -46,15 +46,6 @@ export const pushTokenService = {
     }
   },
 
-  // Получаем сохранённый токен из AsyncStorage
-  async getStoredToken(): Promise<string | null> {
-    try {
-      return await AsyncStorage.getItem('expo_push_token');
-    } catch (error) {
-      console.error('❌ Ошибка получения токена:', error);
-      return null;
-    }
-  },
 
   // Отправляем координаты на сервер
   async updateLocation(token: string, lat: number, lon: number) {
