@@ -22,6 +22,14 @@ interface UseLocationManagerReturn {
     getLocationSubtitle: () => string;
 }
 
+// 🔥 Вспомогательная функция для округления
+const roundCoordinates = (lat: number, lon: number) => {
+    return {
+        lat: Math.round(lat * 1000) / 1000,
+        lon: Math.round(lon * 1000) / 1000
+    };
+};
+
 export const useLocationManager = (): UseLocationManagerReturn => {
     const [coordinates, setCoordinates] = useState<{ lat: number; lon: number } | null>(null);
     const [userCity, setUserCity] = useState<string | null>(null);
@@ -38,7 +46,7 @@ export const useLocationManager = (): UseLocationManagerReturn => {
         isFetching: isFetchingLocation,
     } = useGeolocation(false);
 
-    // 🎯 Отправка координат на сервер
+    // 🎯 Отправка координат на сервер (с округлением!)
     const sendCoordinatesToServer = useCallback(async (lat: number, lon: number, source: string) => {
         try {
             const token = await pushTokenService.getStoredToken();
@@ -47,10 +55,13 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                 return;
             }
             
-            await pushTokenService.updateLocation(token, lat, lon)
+            // 🔥 ОКРУГЛЯЕМ ПЕРЕД ОТПРАВКОЙ
+            const rounded = roundCoordinates(lat, lon);
+            
+            await pushTokenService.updateLocation(token, rounded.lat, rounded.lon)
                 .catch(err => console.warn(`⚠️ Ошибка отправки координат (${source}):`, err));
             
-            console.log(`📍 Координаты отправлены на сервер (${source})`);
+            console.log(`📍 Координаты отправлены на сервер (${source}): ${rounded.lat}, ${rounded.lon}`);
         } catch (error) {
             console.warn(`⚠️ Не удалось отправить координаты (${source}):`, error);
         }
@@ -59,9 +70,12 @@ export const useLocationManager = (): UseLocationManagerReturn => {
     // 🎯 Метод для ручного выбора города
     const setManualCity = useCallback(async (city: CitySearchResult) => {
         try {
+            // 🔥 ОКРУГЛЯЕМ
+            const rounded = roundCoordinates(city.lat, city.lon);
+            
             const newCoordinates = {
-                lat: city.lat,
-                lon: city.lon,
+                lat: rounded.lat,
+                lon: rounded.lon,
             };
 
             // Обновляем состояние
@@ -80,8 +94,8 @@ export const useLocationManager = (): UseLocationManagerReturn => {
 
             await StorageService.saveSelectedLocation(locationData);
 
-            // 🔥 Отправляем координаты на сервер
-            await sendCoordinatesToServer(city.lat, city.lon, 'manual');
+            // 🔥 Отправляем координаты на сервер (уже округлённые)
+            await sendCoordinatesToServer(rounded.lat, rounded.lon, 'manual');
 
             showToast({
                 message: `Город "${city.city}" сохранен`,
@@ -137,7 +151,11 @@ export const useLocationManager = (): UseLocationManagerReturn => {
     const determineCity = useCallback(async (lat: number, lon: number) => {
         try {
             setIsGeocoding(true);
-            const result = await GeocodingService.getCityFromCoords(lat, lon);
+            
+            // 🔥 ОКРУГЛЯЕМ
+            const rounded = roundCoordinates(lat, lon);
+            
+            const result = await GeocodingService.getCityFromCoords(rounded.lat, rounded.lon);
 
             if (result.city) {
                 setUserCity(result.city);
@@ -146,40 +164,43 @@ export const useLocationManager = (): UseLocationManagerReturn => {
                 await StorageService.saveSelectedLocation({
                     city: result.city,
                     country: result.country || '',
-                    coordinates: { lat, lon },
+                    coordinates: rounded,
                     timestamp: Date.now(),
                 });
                 
                 // 🔥 Отправляем координаты на сервер
-                await sendCoordinatesToServer(lat, lon, 'geocode');
+                await sendCoordinatesToServer(rounded.lat, rounded.lon, 'geocode');
                 return;
             }
 
-            const approximateCity = GeocodingService.getCityByApproximation(lat, lon);
+            const approximateCity = GeocodingService.getCityByApproximation(rounded.lat, rounded.lon);
 
             if (approximateCity) {
                 setUserCity(approximateCity);
                 await StorageService.saveSelectedLocation({
                     city: approximateCity,
                     country: '',
-                    coordinates: { lat, lon },
+                    coordinates: rounded,
                     timestamp: Date.now(),
                 });
                 
                 // 🔥 Отправляем координаты на сервер
-                await sendCoordinatesToServer(lat, lon, 'approximate');
+                await sendCoordinatesToServer(rounded.lat, rounded.lon, 'approximate');
             } else {
                 setUserCity(null);
             }
 
         } catch (error) {
             console.error('❌ Ошибка геокодинга:', error);
-            const approximateCity = GeocodingService.getCityByApproximation(lat, lon);
+            
+            // 🔥 ОКРУГЛЯЕМ
+            const rounded = roundCoordinates(lat, lon);
+            const approximateCity = GeocodingService.getCityByApproximation(rounded.lat, rounded.lon);
             setUserCity(approximateCity || null);
             
             if (approximateCity) {
                 // 🔥 Отправляем координаты на сервер даже без города
-                await sendCoordinatesToServer(lat, lon, 'fallback');
+                await sendCoordinatesToServer(rounded.lat, rounded.lon, 'fallback');
             }
         } finally {
             setIsGeocoding(false);
@@ -187,52 +208,50 @@ export const useLocationManager = (): UseLocationManagerReturn => {
     }, [sendCoordinatesToServer]);
 
     // 🎯 Обработка новой геолокации
-    // src/hooks/useLocationManager.ts
-useEffect(() => {
-    if (location && location.latitude !== 55.7558) {
-        const newCoordinates = {
-            lat: location.latitude,
-            lon: location.longitude
-        };
+    useEffect(() => {
+        if (location && location.latitude !== 55.7558) {
+            // 🔥 ОКРУГЛЯЕМ
+            const rounded = roundCoordinates(location.latitude, location.longitude);
+            
+            const newCoordinates = {
+                lat: rounded.lat,
+                lon: rounded.lon
+            };
 
-        setCoordinates(newCoordinates);
+            setCoordinates(newCoordinates);
 
-        // ✅ Город уже есть в location из useGeolocation!
-        // useGeolocation уже сделал геокодинг через Nominatim
-        if (location.city && location.country) {
-            setUserCity(location.city);
-            setUserCountry(location.country);
+            // ✅ Город уже есть в location из useGeolocation!
+            if (location.city && location.country) {
+                setUserCity(location.city);
+                setUserCountry(location.country);
 
-            StorageService.saveSelectedLocation({
-                city: location.city,
-                country: location.country || '',
-                coordinates: newCoordinates,
-                timestamp: Date.now(),
-            });
-            
-            // 🔥 Отправляем координаты на сервер
-            sendCoordinatesToServer(location.latitude, location.longitude, 'device');
-        } else {
-            // 🚫 УБИРАЕМ determineCity ОТСЮДА!
-            // Геокодинг уже сделан в useGeolocation
-            console.log('⚠️ Геокодинг не вернул город, используем координаты');
-            
-            // Просто сохраняем координаты без города
-            setUserCity(null);
-            setUserCountry(null);
-            
-            StorageService.saveSelectedLocation({
-                city: `📍 ${newCoordinates.lat.toFixed(4)}, ${newCoordinates.lon.toFixed(4)}`,
-                country: '',
-                coordinates: newCoordinates,
-                timestamp: Date.now(),
-            });
-            
-            // 🔥 Всё равно отправляем координаты на сервер
-            sendCoordinatesToServer(location.latitude, location.longitude, 'device-fallback');
+                StorageService.saveSelectedLocation({
+                    city: location.city,
+                    country: location.country || '',
+                    coordinates: newCoordinates,
+                    timestamp: Date.now(),
+                });
+                
+                // 🔥 Отправляем координаты на сервер
+                sendCoordinatesToServer(rounded.lat, rounded.lon, 'device');
+            } else {
+                console.log('⚠️ Геокодинг не вернул город, используем координаты');
+                
+                setUserCity(null);
+                setUserCountry(null);
+                
+                StorageService.saveSelectedLocation({
+                    city: `📍 ${newCoordinates.lat.toFixed(3)}, ${newCoordinates.lon.toFixed(3)}`,
+                    country: '',
+                    coordinates: newCoordinates,
+                    timestamp: Date.now(),
+                });
+                
+                // 🔥 Всё равно отправляем координаты на сервер
+                sendCoordinatesToServer(rounded.lat, rounded.lon, 'device-fallback');
+            }
         }
-    }
-}, [location, sendCoordinatesToServer]); // ✅ Убираем determineCity из зависимостей!
+    }, [location, sendCoordinatesToServer]);
 
     // 🎯 Обработчики
     const handleRefreshLocation = async () => {
@@ -251,10 +270,10 @@ useEffect(() => {
         }
 
         if (userCity) {
-            return `${coordinates.lat.toFixed(2)}, ${coordinates.lon.toFixed(2)}`;
+            return `${coordinates.lat.toFixed(3)}, ${coordinates.lon.toFixed(3)}`;
         }
 
-        return 'Координаты: ' + coordinates.lat.toFixed(2) + ', ' + coordinates.lon.toFixed(2);
+        return 'Координаты: ' + coordinates.lat.toFixed(3) + ', ' + coordinates.lon.toFixed(3);
     }, [coordinates, userCity, isGeocoding, isLoadingStorage]);
 
     const locationSource = location?.timestamp
