@@ -4,8 +4,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'https://pixel-weather-server.vercel.app';
 
+// Вспомогательная функция для получения токена
+async function getPushToken(): Promise<string> {
+  const token = await AsyncStorage.getItem('expo_push_token');
+  if (!token) throw new Error('No push token found');
+  return token;
+}
+
+// Вспомогательная функция для получения текущей локации
+async function getCurrentLocation(): Promise<{ lat: number; lon: number }> {
+  // TODO: реализовать получение реальной геолокации
+  // Пока заглушка
+  return { lat: 53.838, lon: 27.584 };
+}
+
 export const pushTokenService = {
-  // Сохраняем токен на сервере
+  // Сохраняем токен на сервере (только при первом запуске)
   async sendToken(token: string) {
     try {
       const response = await fetch(`${API_URL}/api/save-token`, {
@@ -39,12 +53,13 @@ export const pushTokenService = {
     }
   },
 
-  // Отправляем координаты на сервер
+  // 👇 ОБНОВЛЁННАЯ функция отправки координат
   async updateLocation(token: string, lat: number, lon: number) {
     try {
       console.log('📍 Отправка координат на сервер...');
       
-      await fetch(`${API_URL}/api/update-location`, {
+      // Используем новый эндпоинт для установки текущей локации
+      const response = await fetch(`${API_URL}/api/set-current-location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -55,9 +70,34 @@ export const pushTokenService = {
         })
       });
       
-      console.log('✅ Координаты отправлены');
+      if (!response.ok) {
+        throw new Error('Failed to set current location');
+      }
+      
+      const data = await response.json();
+      console.log('✅ Координаты отправлены, текущая локация обновлена');
+      return data;
     } catch (error) {
       console.warn('⚠️ Location update error:', error);
+    }
+  },
+
+  // 👇 НОВАЯ функция для регистрации при первом запуске
+  async registerDevice() {
+    try {
+      const token = await this.getStoredToken();
+      if (!token) throw new Error('No token');
+      
+      // Получаем текущую локацию (через геолокацию)
+      // TODO: реализовать получение реальных координат
+      const location = await getCurrentLocation();
+      
+      // Отправляем как текущую
+      await this.updateLocation(token, location.lat, location.lon);
+      
+      console.log('✅ Устройство зарегистрировано');
+    } catch (error) {
+      console.error('❌ Ошибка регистрации:', error);
     }
   }
 };

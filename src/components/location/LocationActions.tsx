@@ -15,7 +15,6 @@ export const LocationActions: React.FC<LocationActionsProps> = ({
   isRefreshing = false,
   isGeocoding = false,
   compact = false,
-  refreshButtonText = 'Обновить местоположение',
 }) => {
   const isLoading = isRefreshing || isGeocoding;
 

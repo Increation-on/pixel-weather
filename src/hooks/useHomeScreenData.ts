@@ -45,15 +45,21 @@ export const useHomeScreenData = () => {
 
   // 🎯 Загружаем кэш при инициализации
   const loadCachedWeather = useCallback(async () => {
-    try {
-      const cache = await weatherCache.get();
-      if (cache) {
-        setCachedWeather(cache.data);
-      }
-    } catch (error) {
-      console.error('❌ Ошибка при загрузке кэша:', error);
+  // Если нет координат — ничего не делаем
+  if (!coordinates) {
+    console.log('⚠️ Нет координат, кэш не загружается');
+    return;
+  }
+
+  try {
+    const cache = await weatherCache.get(coordinates.lat, coordinates.lon);
+    if (cache) {
+      setCachedWeather(cache.data);
     }
-  }, []);
+  } catch (error) {
+    console.error('❌ Ошибка при загрузке кэша:', error);
+  }
+}, [coordinates]);
 
   // 🎯 Получаем отформатированное название текущего города
   const getCurrentCityDisplay = useCallback((): string => {
