@@ -230,45 +230,7 @@ export default function WeatherSettings() {
                     </View>
                 </View>
 
-                <View className="mb-8">
-                    <View className="flex-row items-center mb-4">
-                        <Image
-                            source={require('@/assets/icons/info.png')}
-                            style={{ width: 48, height: 48, marginRight: 8 }}
-                            resizeMode="contain"
-                        />
-                        <Text className="font-pixel text-text-primary text-xl">ИНФОРМАЦИЯ</Text>
-                    </View>
-
-                    <View className="bg-card/70 rounded-lg p-4 border border-card">
-                        <Text className="font-pixel text-text-secondary text-sm mb-2">
-                            ℹ️ УВЕДОМЛЕНИЯ ТРЕБУЮТ РАЗРЕШЕНИЯ
-                        </Text>
-                        <Text className="font-pixel text-text-secondary text-sm">
-                            🔔 СЕРВЕР ПРОВЕРЯЕТ ПОГОДУ КАЖДЫЕ 30 МИНУТ
-                        </Text>
-
-                        {Constants.appOwnership === 'expo' && (
-                            <Text className="font-pixel text-yellow-400 text-sm mt-2">
-                                ⚠️ EXPO GO: PUSH-УВЕДОМЛЕНИЯ НЕДОСТУПНЫ
-                            </Text>
-                        )}
-
-                        {Constants.appOwnership !== 'expo' && permissionStatus === 'denied' && (
-                            <Text className="font-pixel text-red-400 text-sm mt-2">
-                                ⚠️ РАЗРЕШЕНИЕ ОТКЛОНЕНО. ЗАЙДИТЕ В НАСТРОЙКИ УСТРОЙСТВА.
-                            </Text>
-                        )}
-
-                        {Constants.appOwnership !== 'expo' && permissionStatus === 'granted' && (
-                            <Text className="font-pixel text-green-400 text-sm mt-2">
-                                ✅ PUSH-УВЕДОМЛЕНИЯ ДОСТУПНЫ
-                            </Text>
-                        )}
-                    </View>
-                </View>
-
-                <View className="mt-4 mb-8">
+                <View className="mt-5 mb-1">
                     <Link href="/" asChild>
                         <TouchableOpacity className="bg-card border-2 border-primary rounded-lg p-4 active:opacity-80">
                             <Text className="font-pixel text-primary text-center text-base">
@@ -280,10 +242,10 @@ export default function WeatherSettings() {
 
                 <View className="mt-12 pt-6 border-t border-card/50">
                     <Text className="font-pixel text-text-secondary text-xs text-center">
-                        PIXEL WEATHER v1.0
+                        PIXEL WEATHER v1.1
                     </Text>
-                    <Text className="font-pixel text-text-secondary text-xs text-center mt-1">
-                        RETRO WEATHER APP
+                    <Text className="font-pixel text-text-secondary text-xs text-center mt-2">
+                         WEATHER APP
                     </Text>
                 </View>
             </ScrollView>
