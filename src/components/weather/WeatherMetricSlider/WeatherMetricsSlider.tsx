@@ -52,7 +52,7 @@ export const WeatherMetricsSlider: React.FC<WeatherMetricsSliderProps> = ({
 
   return (
     <View
-      className="mt-4 bg-card border-2 border-gray-600"
+      className="mt-5 bg-card border-2 border-gray-600"
       style={{
         width: containerWidth,
         alignSelf: 'center',

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, ImageSourcePropType } from 'react-native';
 
 interface WeatherMetricCardProps {
-    icon: ImageSourcePropType; // Меняем string на ImageSourcePropType
+    icon: ImageSourcePropType; 
     title: string;
     value: string | number;
     unit: string;
@@ -18,9 +18,8 @@ export const WeatherMetricCard: React.FC<WeatherMetricCardProps> = ({
 }) => {
     return (
         <View className="w-full flex-row items-center h-36 -mt-6">
-            {/* Контейнер для иконки - фиксированной ширины, по центру вертикали */}
+            
             <View className="w-16 items-center justify-center">
-                {/* Заменяем Text на Image */}
                 <Image 
                     source={icon}
                     style={{ width: 80, height: 80 }}

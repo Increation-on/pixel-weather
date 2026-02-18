@@ -3,7 +3,8 @@ import React from 'react';
 import {
     View,
     FlatList,
-    RefreshControl
+    RefreshControl,
+    Text
 } from 'react-native';
 import { LocationHeader } from '@/src/components/location/LocationHeader';
 import { WeatherCard } from '@/src/components/weather/WeatherCard';
@@ -63,6 +64,11 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
 }) => {
     const handleSearchPress = onSearchPress || (() => setIsSearchVisible(true));
 
+    const today = new Date().toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
     // Контент для FlatList
     const renderContent = () => (
         <View>
@@ -78,11 +84,16 @@ export const WeatherContent: React.FC<WeatherContentProps> = ({
             />
 
             {showSearchButton && (
-                <SearchButton
-                    handleSearchPress={handleSearchPress}
-                    isOffline={isOffline}
-                    userCity={userCity}
-                />
+                <View className='mt-4'>
+                    <View className="-mb-5">
+                        <Text className="text-white text-xs font-pixel">{today}</Text>
+                    </View>
+                    <SearchButton
+                        handleSearchPress={handleSearchPress}
+                        isOffline={isOffline}
+                        userCity={userCity}
+                    />
+                </View>
             )}
 
             {/* Карточка погоды */}

@@ -7,7 +7,6 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { DataSourceInfo } from '../shared/DataSourceInfo';
 
 const { width } = Dimensions.get('window');
 

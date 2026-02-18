@@ -30,11 +30,6 @@ export function useWeather(lat: number, lon: number) {
         console.error('❌ Ошибка сохранения координат:', error);
       }
 
-      // 🚫 УДАЛЯЕМ ВЕСЬ БЛОК УВЕДОМЛЕНИЙ
-      // if (settings.notifications) {
-      //   ... старый код с WeatherNotificationService ...
-      // }
-
       return newData;
     },
     refetchInterval: 30 * 60 * 1000,

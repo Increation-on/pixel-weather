@@ -3,15 +3,13 @@ import { View, Text } from 'react-native';
 
 interface DataSourceInfoProps {
   source: 'open-meteo' | 'weather-api' | 'cached' | string;
-  compact?: boolean; // ← новый пропс
+  compact?: boolean;
 }
 
 export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
   source,
   compact = false,
 }) => {
-  if (!__DEV__) return null;
-
   // Компактный режим (только источник)
   if (compact) {
     return (
@@ -26,7 +24,7 @@ export const DataSourceInfo: React.FC<DataSourceInfoProps> = ({
     );
   }
 
-  // Полная версия (как была, но с NativeWind)
+  // Полная версия
   return (
     <View className="mt-5 p-3 bg-card rounded-lg">
       <Text className="text-[10px] font-pixel text-text-secondary">Отладка:</Text>
