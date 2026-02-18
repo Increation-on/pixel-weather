@@ -3,7 +3,12 @@
 My first React Native app with **real‑world push notifications**, server‑side logic, and a retro pixel aesthetic.  
 What started as "let's add notifications" turned into a full‑stack project with a smart backend and a clean frontend.
 
----
+## 📸 Screenshots
+
+<img src="screenshots/Home.jpg" width="200">
+<img src="screenshots/Forecast.jpg" width="200">
+<img src="screenshots/Settings.jpg" width="200">
+<img src="screenshots/Search.jpg" width="200">
 
 ## ✨ Features
 
