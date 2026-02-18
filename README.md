@@ -5,10 +5,12 @@ What started as "let's add notifications" turned into a full‑stack project wit
 
 ## 📸 Screenshots
 
-| | | |
-|---|---|---|
-| <img src="screenshots/Home.jpg" width="200"> | <img src="screenshots/Forecast.jpg" width="200"> | <img src="screenshots/Search.jpg" width="200"> |
-| <img src="screenshots/Settings.jpg" width="200"> | | |
+ <div style="display: flex; gap: 10;">
+  <img src="screenshots/Home.jpg" width="200">
+  <img src="screenshots/Forecast.jpg" width="200">
+  <img src="screenshots/Search.jpg" width="200">
+  <img src="screenshots/Settings.jpg" width="200">
+</div>
 
 ## ✨ Features
 
